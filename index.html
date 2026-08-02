@@ -65,14 +65,51 @@
       min-height: 2.4em;
     }
     
-    #board {
+    .board-container {
+      position: relative;
       width: 100%;
       max-width: 360px;
       margin: 0 auto;
+    }
+
+    #board {
+      width: 100%;
       box-shadow: 0 8px 24px rgba(0,0,0,0.6);
       border-radius: 8px;
       overflow: visible !important;
       position: relative;
+    }
+
+    .board-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15, 15, 20, 0.85);
+      backdrop-filter: blur(3px);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 500;
+      animation: fadeIn 0.4s ease forwards;
+    }
+    .board-overlay h2 {
+      margin: 0;
+      font-size: 2.2rem;
+      color: #ff4d4d;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      text-shadow: 0 4px 12px rgba(255, 77, 77, 0.4);
+    }
+    .board-overlay p {
+      margin: 8px 0 0 0;
+      font-size: 1rem;
+      color: #d0d0d5;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
     }
 
     .notation-32298 { color: #a0a0ab !important; font-weight: bold; font-size: 11px; }
@@ -161,7 +198,6 @@
 </head>
 <body>
 
-  <!-- Аккуратный переключатель языков без вылезающих текстовых флагов -->
   <div class="lang-selector">
     <button class="lang-btn" data-lang="ru" onclick="setLanguage('ru')">RU</button>
     <button class="lang-btn" data-lang="ua" onclick="setLanguage('ua')">UA</button>
@@ -171,7 +207,14 @@
   </div>
 
   <div id="status">...</div>
-  <div id="board"></div>
+  
+  <div class="board-container">
+    <div id="board"></div>
+    <div id="boardOverlay" class="board-overlay" style="display: none;">
+      <h2 id="overlayTitle">💀 Поражение!</h2>
+      <p id="overlaySub">Шах и мат</p>
+    </div>
+  </div>
 
   <div class="controls">
     <div class="action-buttons" id="moveActions" style="display:none;">
@@ -221,6 +264,8 @@
         moved: "Ход сделан! Нажмите \"Отправить ход\".",
         check: "(Шах!)",
         checkmate: "Мат! Победили ",
+        defeatTitle: "💀 Поражение!",
+        checkmateSub: "Шах и мат",
         drawGame: "🤝 Игра завершилась вничью!",
         drawOffer: "🤝 Соперник предлагает ничью!",
         drawAccepted: "🤝 Вы приняли ничью!",
@@ -257,6 +302,8 @@
         moved: "Хід зроблено! Натисніть \"Надіслати хід\".",
         check: "(Шах!)",
         checkmate: "Мат! Перемогли ",
+        defeatTitle: "💀 Поразка!",
+        checkmateSub: "Шах і мат",
         drawGame: "🤝 Гра завершилася внічию!",
         drawOffer: "🤝 Суперник пропонує нічию!",
         drawAccepted: "🤝 Ви прийняли нічию!",
@@ -293,6 +340,8 @@
         moved: "Move done! Press \"Send Move\".",
         check: "(Check!)",
         checkmate: "Checkmate! Winner: ",
+        defeatTitle: "💀 Defeat!",
+        checkmateSub: "Checkmate",
         drawGame: "🤝 Game ended in a draw!",
         drawOffer: "🤝 Opponent offers a draw!",
         drawAccepted: "🤝 Draw accepted!",
@@ -329,6 +378,8 @@
         moved: "¡Jugada hecha! Pulsa \"Enviar jugada\".",
         check: "(¡Jaque!)",
         checkmate: "¡Jaque mate! Ganan las ",
+        defeatTitle: "💀 ¡Derrota!",
+        checkmateSub: "Jaque mate",
         drawGame: "🤝 ¡Partida en tablas!",
         drawOffer: "🤝 ¡El oponente ofrece tablas!",
         drawAccepted: "🤝 ¡Tablas aceptadas!",
@@ -365,6 +416,8 @@
         moved: "Mossa fatta! Premi \"Invia Mossa\".",
         check: "(Scacco!)",
         checkmate: "Scacco matto! Vincono i ",
+        defeatTitle: "💀 Sconfitta!",
+        checkmateSub: "Scacco matto",
         drawGame: "🤝 Partita finita in patta!",
         drawOffer: "🤝 L'avversario propone la patta!",
         drawAccepted: "🤝 Patta accettata!",
@@ -408,6 +461,8 @@
       $('#resetBtn').text(t.reset);
       $('#rulesHeader').text(t.rulesTitle);
       $('#rulesContent').html(t.rulesHtml);
+      $('#overlayTitle').text(t.defeatTitle);
+      $('#overlaySub').text(t.checkmateSub);
 
       updateStatus();
     }
@@ -516,6 +571,7 @@
       removeHighlights();
       selectedSquare = null;
       document.getElementById('moveActions').style.display = 'none';
+      document.getElementById('boardOverlay').style.display = 'none';
       updateStatus();
     }
 
@@ -528,11 +584,15 @@
         status = t.drawOffer;
         document.getElementById('drawOfferActions').style.display = 'flex';
         document.getElementById('mainOptions').style.display = 'none';
+        document.getElementById('boardOverlay').style.display = 'none';
       } else if (game.in_checkmate()) {
         status = `${t.checkmate}${game.turn() === 'w' ? t.black : t.white}.`;
+        document.getElementById('boardOverlay').style.display = 'flex';
       } else if (game.in_draw()) {
         status = t.drawGame;
+        document.getElementById('boardOverlay').style.display = 'none';
       } else {
+        document.getElementById('boardOverlay').style.display = 'none';
         const isMoved = game.fen() !== initialFen;
         status = isMoved ? t.moved : `${t.turn}: ${moveColor}`;
         if (game.in_check()) status += ` ${t.check}`;
