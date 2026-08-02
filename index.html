@@ -30,7 +30,6 @@
       min-height: 2.4em;
     }
     
-    /* Контейнер доски с отступами под разметку */
     #board {
       width: 100%;
       max-width: 360px;
@@ -41,31 +40,26 @@
       position: relative;
     }
 
-    /* Вынос обозначений клеток (нотация) за пределы доски */
     .notation-32298 {
       color: #a0a0ab !important;
       font-weight: bold;
       font-size: 11px;
     }
 
-    /* Буквы (вертикали) сдвигаем вниз под клетки */
     .alpha-d2270 {
       bottom: -18px !important;
       right: 4px !important;
     }
 
-    /* Цифры (горизонтали) сдвигаем влево за клетки */
     .numeric-fc462 {
       left: -16px !important;
       top: 4px !important;
     }
 
-    /* Подсветка выбранной фигуры (жёлтая заливка) */
     .highlight-selected {
       background-color: rgba(255, 235, 59, 0.5) !important;
     }
 
-    /* Подсветка доступных ходов (только зелёная кромка/рамка) */
     .highlight-hint {
       box-shadow: inset 0 0 0 3px #4caf50 !important;
       cursor: pointer !important;
@@ -93,18 +87,12 @@
       font-weight: bold;
       cursor: pointer;
     }
-    .btn-send {
-      background-color: #2ea6ff;
-      color: #ffffff;
-    }
-    .btn-undo {
-      background-color: #ff9800;
-      color: #ffffff;
-    }
-    .btn-reset {
-      background-color: #e53935;
-      color: #ffffff;
-    }
+    .btn-send { background-color: #2ea6ff; color: #ffffff; }
+    .btn-undo { background-color: #ff9800; color: #ffffff; }
+    .btn-draw { background-color: #9c27b0; color: #ffffff; }
+    .btn-accept { background-color: #4caf50; color: #ffffff; }
+    .btn-decline { background-color: #f44336; color: #ffffff; }
+    .btn-reset { background-color: #e53935; color: #ffffff; }
     
     .rules-container {
       width: 100%;
@@ -152,7 +140,18 @@
       <button class="btn-send" id="sendBtn" onclick="shareMove()">📤 Отправить ход</button>
       <button class="btn-undo" onclick="undoMove()">↩️ Переходить</button>
     </div>
-    <button class="btn-reset" onclick="resetGame()">🔄 Сбросить доску</button>
+
+    <!-- Кнопки ответа на предложение ничьей -->
+    <div class="action-buttons" id="drawOfferActions" style="display:none;">
+      <button class="btn-accept" onclick="acceptDraw()">✅ Принять ничью</button>
+      <button class="btn-decline" onclick="declineDraw()">❌ Отклонить</button>
+    </div>
+
+    <!-- Основные опции -->
+    <div class="action-buttons" id="mainOptions">
+      <button class="btn-draw" id="drawBtn" onclick="offerDraw()">🤝 Ничья?</button>
+      <button class="btn-reset" onclick="resetGame()">🔄 Сброс</button>
+    </div>
   </div>
 
   <div class="rules-container">
@@ -160,25 +159,16 @@
       <summary>📖 Как играть и правила</summary>
       <div class="rules-content">
         <h4>♟️ Управление и ходы</h4>
-        <p>Вы можете делать ход двумя способами:</p>
         <ul>
-          <li><b>Клик и выбор:</b> Нажмите на фигуру (подсветится жёлтым), затем на клетку с зелёной кромкой.</li>
-          <li><b>Перетаскивание:</b> Зажмите фигуру и перетащите её.</li>
+          <li><b>Клик и выбор:</b> Нажмите на фигуру, затем на зелёную кромку.</li>
+          <li><b>Предложение ничьей:</b> Нажмите «🤝 Ничья?», чтобы выслать предложение сопернику.</li>
         </ul>
-
         <h4>🔄 Пошаговый процесс:</h4>
         <ol>
-          <li>Сделайте ход на доске.</li>
-          <li>Вы можете переходить, пока не нажали <b>«Отправить ход»</b>.</li>
-          <li>Нажмите синюю кнопку <b>«Отправить ход»</b> и выберите чат с соперником.</li>
-          <li>Для ответного хода всегда нажимайте на <b>ПОСЛЕДНЮЮ присланную ссылку</b> в вашем чате.</li>
+          <li>Сделайте ход на доске или предложите ничью.</li>
+          <li>Нажмите <b>«Отправить ход»</b> и выберите чат с соперником.</li>
+          <li>Для ответного хода нажимайте на <b>ПОСЛЕДНЮЮ присланную ссылку</b>.</li>
         </ol>
-
-        <h4>💡 Важные особенности:</h4>
-        <ul>
-          <li><b>Разные соперники:</b> Чтобы сыграть с другим человеком, нажмите «Сбросить доску», сделайте ход и отправьте новую ссылку в другой чат.</li>
-          <li><b>Превращение пешки:</b> Автоматически в Ферзя.</li>
-        </ul>
       </div>
     </details>
   </div>
@@ -198,6 +188,7 @@
 
     const urlParams = new URLSearchParams(window.location.search);
     const startFen = urlParams.get('fen');
+    const isDrawOffer = urlParams.get('drawOffer') === 'true';
 
     if (startFen) {
       game.load(decodeURIComponent(startFen));
@@ -241,7 +232,7 @@
     }
 
     function handleSquareClick (square) {
-      if (game.game_over()) return;
+      if (game.game_over() || isDrawOffer) return;
 
       const piece = game.get(square);
       const isCurrentTurnPiece = piece && (
@@ -265,7 +256,7 @@
     }
 
     function onDragStart (source, piece) {
-      if (game.game_over()) return false;
+      if (game.game_over() || isDrawOffer) return false;
       if ((game.turn() === 'w' && piece.search(/^b/) !== -1) ||
           (game.turn() === 'b' && piece.search(/^w/) !== -1)) {
         return false;
@@ -296,13 +287,17 @@
       let status = '';
       let moveColor = game.turn() === 'b' ? 'Чёрные' : 'Белые';
 
-      if (game.in_checkmate()) {
+      if (isDrawOffer) {
+        status = '🤝 Соперник предлагает ничью!';
+        document.getElementById('drawOfferActions').style.display = 'flex';
+        document.getElementById('mainOptions').style.display = 'none';
+      } else if (game.in_checkmate()) {
         status = `Мат! Победили ${game.turn() === 'w' ? 'Чёрные' : 'Белые'}.`;
       } else if (game.in_draw()) {
-        status = 'Ничья!';
+        status = '🤝 Игра завершилась вничью!';
       } else {
         const isMoved = game.fen() !== initialFen;
-        status = isMoved ? 'Ход сделан! Нажмите "Отправить ход" или переходите.' : `Ход: ${moveColor}`;
+        status = isMoved ? 'Ход сделан! Нажмите "Отправить ход".' : `Ход: ${moveColor}`;
         if (game.in_check()) status += ' (Шах!)';
       }
       document.getElementById('status').innerText = status;
@@ -310,7 +305,7 @@
 
     const currentTurn = game.turn();
     const config = {
-      draggable: true,
+      draggable: !isDrawOffer,
       position: game.fen(),
       orientation: currentTurn === 'w' ? 'white' : 'black',
       onDragStart: onDragStart,
@@ -320,6 +315,7 @@
     };
 
     board = Chessboard('board', config);
+    board.position(game.fen(), false);
     updateStatus();
 
     $('#board').on('click', '*', function (e) {
@@ -335,8 +331,29 @@
       const baseUrl = window.location.origin + window.location.pathname;
       const gameUrl = `${baseUrl}?fen=${currentFen}`;
       const text = encodeURIComponent(`Мой ход в Allegro Chess! Твой черед:`);
-      const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(gameUrl)}&text=${text}`;
+      sendTelegramLink(gameUrl, text);
+    }
 
+    function offerDraw() {
+      const currentFen = encodeURIComponent(game.fen());
+      const baseUrl = window.location.origin + window.location.pathname;
+      const gameUrl = `${baseUrl}?fen=${currentFen}&drawOffer=true`;
+      const text = encodeURIComponent(`🤝 Я предлагаю ничью в Allegro Chess! Принимаешь?`);
+      sendTelegramLink(gameUrl, text);
+    }
+
+    function acceptDraw() {
+      document.getElementById('status').innerText = '🤝 Вы приняли ничью!';
+      document.getElementById('drawOfferActions').style.display = 'none';
+      document.getElementById('mainOptions').style.display = 'flex';
+    }
+
+    function declineDraw() {
+      window.location.href = window.location.origin + window.location.pathname + `?fen=${encodeURIComponent(game.fen())}`;
+    }
+
+    function sendTelegramLink(gameUrl, text) {
+      const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(gameUrl)}&text=${text}`;
       if (tg && tg.openTelegramLink) {
         tg.openTelegramLink(shareUrl);
       } else {
