@@ -197,20 +197,27 @@
     let initialFen = null;
     let selectedSquare = null;
 
-    // Вспомогательные функции для красивого FEN в URL
+    // Универсальный парсер: читает и старый FEN (со слэшами), и новый (с подчеркиваниями)
+    function parseFenInput(rawFen) {
+      if (!rawFen) return null;
+      let decoded = decodeURIComponent(rawFen);
+      if (decoded.includes('_')) {
+        decoded = decoded.replace(/_/g, '/').replace(/-/g, ' ');
+      }
+      return decoded;
+    }
+
     function encodeFen(fen) {
       return fen.replace(/\//g, '_').replace(/ /g, '-');
     }
-    function decodeFen(shortFen) {
-      return shortFen.replace(/_/g, '/').replace(/-/g, ' ');
-    }
 
     const urlParams = new URLSearchParams(window.location.search);
-    const startFen = urlParams.get('fen');
+    const rawFen = urlParams.get('fen');
     const isDrawOffer = urlParams.get('drawOffer') === 'true';
 
-    if (startFen) {
-      game.load(decodeFen(decodeURIComponent(startFen)));
+    const parsedFen = parseFenInput(rawFen);
+    if (parsedFen) {
+      game.load(parsedFen);
     }
     initialFen = game.fen();
 
