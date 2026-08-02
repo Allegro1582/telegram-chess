@@ -37,6 +37,16 @@
       border-radius: 8px;
       overflow: hidden;
     }
+
+    /* Подсветка клеток */
+    .highlight-selected {
+      background-color: rgba(255, 235, 59, 0.6) !important;
+    }
+    .highlight-hint {
+      background-color: rgba(76, 175, 80, 0.5) !important;
+      cursor: pointer;
+    }
+
     .controls {
       margin-top: 15px;
       display: flex;
@@ -129,20 +139,24 @@
     <details>
       <summary>📖 Как играть и правила</summary>
       <div class="rules-content">
-        <h4>♟️ Логика асинхронной игры</h4>
-        <p>В этой игре нет серверов и лимита по времени. Каждая партия «живёт» прямо в ссылках в вашем чате Telegram.</p>
-        
+        <h4>♟️ Управление и ходы</h4>
+        <p>Вы можете делать ход двумя способами:</p>
+        <ul>
+          <li><b>Клик и выбор:</b> Нажмите на фигуру (она подсветится жёлтым, а возможные ходы — зелёным), затем нажмите на нужную клетку.</li>
+          <li><b>Перетаскивание:</b> Зажмите фигуру и перетащите её на нужную клетку.</li>
+        </ul>
+
         <h4>🔄 Пошаговый процесс:</h4>
         <ol>
-          <li>Сделайте ход на доске по правилам шахмат.</li>
+          <li>Сделайте ход на доске.</li>
           <li>Вы можете переходить, пока не нажали <b>«Отправить ход»</b>.</li>
           <li>Нажмите синюю кнопку <b>«Отправить ход»</b> и выберите чат с соперником.</li>
-          <li>Чтобы сделать следующий ход, всегда нажимайте на <b>ПОСЛЕДНЮЮ присланную ссылку</b> из вашего чата.</li>
+          <li>Для ответного хода всегда нажимайте на <b>ПОСЛЕДНЮЮ присланную ссылку</b> в вашем чате.</li>
         </ol>
 
         <h4>💡 Важные особенности:</h4>
         <ul>
-          <li><b>Разные соперники:</b> Чтобы сыграть с другим человеком, нажми «Сбросить доску», сделай ход и отправь новую ссылку в другой чат.</li>
+          <li><b>Разные соперники:</b> Чтобы сыграть с другим человеком, нажмите «Сбросить доску», сделайте ход и отправьте новую ссылку в другой чат.</li>
           <li><b>Превращение пешки:</b> Автоматически в Ферзя.</li>
         </ul>
       </div>
@@ -160,6 +174,7 @@
     let board = null;
     let game = new Chess();
     let initialFen = null;
+    let selectedSquare = null;
 
     const urlParams = new URLSearchParams(window.location.search);
     const startFen = urlParams.get('fen');
@@ -167,19 +182,24 @@
     if (startFen) {
       game.load(decodeURIComponent(startFen));
     }
-    initialFen = game.fen(); // Запоминаем исходное состояние в начале хода
+    initialFen = game.fen();
 
-    function onDragStart (source, piece) {
-      if (game.game_over()) return false;
-      // Запрет двигать фигуры соперника
-      if ((game.turn() === 'w' && piece.search(/^b/) !== -1) ||
-          (game.turn() === 'b' && piece.search(/^w/) !== -1)) {
-        return false;
+    function removeHighlights () {
+      $('#board .square-55d63').removeClass('highlight-selected highlight-hint');
+    }
+
+    function showLegalMoves (square) {
+      removeHighlights();
+      const moves = game.moves({ square: square, verbose: true });
+      if (moves.length === 0) return;
+
+      $('#board .square-' + square).addClass('highlight-selected');
+      for (let i = 0; i < moves.length; i++) {
+        $('#board .square-' + moves[i].to).addClass('highlight-hint');
       }
     }
 
-    function onDrop (source, target) {
-      // Если уже переходили в этом сеансе, сначала сбрасываем состояние
+    function makeMove (source, target) {
       if (game.fen() !== initialFen) {
         game.undo();
       }
@@ -190,19 +210,65 @@
         promotion: 'q'
       });
 
-      if (move === null) return 'snapback';
+      if (move === null) return false;
 
+      removeHighlights();
+      board.position(game.fen());
       updateStatus();
       document.getElementById('moveActions').style.display = 'flex';
+      selectedSquare = null;
+      return true;
+    }
+
+    function onSquareClick (square) {
+      if (game.game_over()) return;
+
+      const piece = game.get(square);
+      const isCurrentTurnPiece = piece && (
+        (game.turn() === 'w' && piece.color === 'w') ||
+        (game.turn() === 'b' && piece.color === 'b')
+      );
+
+      // Если кликнули на свою фигуру — подсвечиваем ее ходы
+      if (isCurrentTurnPiece) {
+        selectedSquare = square;
+        showLegalMoves(square);
+        return;
+      }
+
+      // Если уже была выбрана фигура и кликнули на клетку назначения
+      if (selectedSquare) {
+        const moved = makeMove(selectedSquare, square);
+        if (!moved) {
+          removeHighlights();
+          selectedSquare = null;
+        }
+      }
+    }
+
+    function onDragStart (source, piece) {
+      if (game.game_over()) return false;
+      if ((game.turn() === 'w' && piece.search(/^b/) !== -1) ||
+          (game.turn() === 'b' && piece.search(/^w/) !== -1)) {
+        return false;
+      }
+      showLegalMoves(source);
+    }
+
+    function onDrop (source, target) {
+      const moved = makeMove(source, target);
+      if (!moved) return 'snapback';
     }
 
     function onSnapEnd () {
-      board.position(game.fen());
+      removeHighlights();
     }
 
     function undoMove() {
       game.load(initialFen);
       board.position(initialFen);
+      removeHighlights();
+      selectedSquare = null;
       document.getElementById('moveActions').style.display = 'none';
       updateStatus();
     }
@@ -236,6 +302,12 @@
 
     board = Chessboard('board', config);
     updateStatus();
+
+    // Вешаем обработчик кликов по клеткам
+    $('#board').on('click', '.square-55d63', function () {
+      const square = $(this).attr('data-square');
+      onSquareClick(square);
+    });
 
     function shareMove() {
       const currentFen = encodeURIComponent(game.fen());
