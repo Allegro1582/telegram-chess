@@ -197,6 +197,24 @@
     let initialFen = null;
     let selectedSquare = null;
 
+    // Универсальный парсер: умеет брать данные и из URL search (?fen=), и из Hash (#fen=)
+    function getRawFenFromUrl() {
+      // 1. Проверяем Hash (самый надежный для Telegram WebApp)
+      const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+      if (hashParams.get('fen')) return hashParams.get('fen');
+
+      // 2. Проверяем классический Search ?fen=
+      const searchParams = new URLSearchParams(window.location.search);
+      if (searchParams.get('fen')) return searchParams.get('fen');
+
+      // 3. Проверяем Telegram WebApp initDataUnsafe (если передано через tgWebAppStartParam)
+      if (tg?.initDataUnsafe?.start_param) {
+        return tg.initDataUnsafe.start_param;
+      }
+
+      return null;
+    }
+
     function parseFenInput(rawFen) {
       if (!rawFen) return null;
       let decoded = decodeURIComponent(rawFen);
@@ -210,9 +228,10 @@
       return fen.replace(/\//g, '_').replace(/ /g, '-');
     }
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const rawFen = urlParams.get('fen');
-    const isDrawOffer = urlParams.get('drawOffer') === 'true';
+    const rawFen = getRawFenFromUrl();
+    const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+    const searchParams = new URLSearchParams(window.location.search);
+    const isDrawOffer = hashParams.get('drawOffer') === 'true' || searchParams.get('drawOffer') === 'true';
 
     const parsedFen = parseFenInput(rawFen);
     if (parsedFen) {
@@ -366,14 +385,15 @@
       }
 
       const shortFen = encodeFen(game.fen());
-      const gameUrl = `https://allegro1582.github.io/telegram-chess/?fen=${shortFen}`;
+      // Ссылка генерируется через #fen= (хэш сохраняется Telegram-клиентами стопроцентно)
+      const gameUrl = `https://allegro1582.github.io/telegram-chess/#fen=${shortFen}`;
       const text = encodeURIComponent(`♟️ Мой ход${moveText}! Твой черед:`);
       sendTelegramLink(gameUrl, text);
     }
 
     function offerDraw() {
       const shortFen = encodeFen(game.fen());
-      const gameUrl = `https://allegro1582.github.io/telegram-chess/?fen=${shortFen}&drawOffer=true`;
+      const gameUrl = `https://allegro1582.github.io/telegram-chess/#fen=${shortFen}&drawOffer=true`;
       const text = encodeURIComponent(`🤝 Предлагаю ничью! Принимаешь?`);
       sendTelegramLink(gameUrl, text);
     }
@@ -386,7 +406,7 @@
 
     function declineDraw() {
       const shortFen = encodeFen(game.fen());
-      window.location.href = `https://allegro1582.github.io/telegram-chess/?fen=${shortFen}`;
+      window.location.href = `https://allegro1582.github.io/telegram-chess/#fen=${shortFen}`;
     }
 
     function sendTelegramLink(gameUrl, text) {
