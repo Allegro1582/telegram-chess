@@ -17,14 +17,14 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start;
       min-height: 100vh;
       margin: 0;
       padding: 15px;
     }
     #status {
       font-size: 1.1rem;
-      margin-bottom: 15px;
+      margin-bottom: 12px;
       font-weight: 600;
       text-align: center;
       min-height: 2.4em;
@@ -38,7 +38,7 @@
       overflow: hidden;
     }
     .controls {
-      margin-top: 20px;
+      margin-top: 15px;
       display: flex;
       gap: 10px;
       width: 100%;
@@ -46,7 +46,7 @@
     }
     button {
       flex: 1;
-      padding: 14px 8px;
+      padding: 12px 8px;
       border: none;
       border-radius: 10px;
       font-size: 0.95rem;
@@ -61,6 +61,56 @@
       background-color: #e53935;
       color: #ffffff;
     }
+    
+    /* Стили блока правил */
+    .rules-container {
+      width: 100%;
+      max-width: 360px;
+      margin-top: 15px;
+      border: 1px solid #33333e;
+      border-radius: 10px;
+      overflow: hidden;
+      background-color: #262630;
+    }
+    details {
+      width: 100%;
+    }
+    summary {
+      padding: 12px 15px;
+      font-weight: bold;
+      cursor: pointer;
+      user-select: none;
+      color: #2ea6ff;
+      outline: none;
+      font-size: 0.95rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    summary::-webkit-details-marker { display: none; }
+    summary::after {
+      content: "►";
+      font-size: 0.8rem;
+      transition: transform 0.2s;
+    }
+    details[open] summary::after {
+      transform: rotate(90deg);
+    }
+    .rules-content {
+      padding: 0 15px 15px 15px;
+      font-size: 0.85rem;
+      line-height: 1.4;
+      color: #d0d0d5;
+      border-top: 1px solid #33333e;
+    }
+    .rules-content h4 {
+      margin: 12px 0 4px 0;
+      color: #ffffff;
+    }
+    .rules-content ol, .rules-content ul {
+      margin: 4px 0;
+      padding-left: 18px;
+    }
   </style>
 </head>
 <body>
@@ -71,6 +121,33 @@
   <div class="controls">
     <button class="btn-send" id="sendBtn" onclick="shareMove()" style="display:none;">📤 Отправить ход</button>
     <button class="btn-reset" onclick="resetGame()">🔄 Сбросить доску</button>
+  </div>
+
+  <!-- Встроенный блок правил -->
+  <div class="rules-container">
+    <details>
+      <summary>📖 Как играть и правила</summary>
+      <div class="rules-content">
+        <h4>♟️ Логика асинхронной игры</h4>
+        <p>В этой игре нет серверов и лимита по времени. Каждая партия «живёт» прямо в ссылках в вашем чате Telegram.</p>
+        
+        <h4>🔄 Пошаговый процесс:</h4>
+        <ol>
+          <li>Сделайте ход на доске по правилам шахмат.</li>
+          <li>Нажмите синюю кнопку <b>«Отправить ход»</b>.</li>
+          <li>Выберите чат с соперником и отправьте ему сформированную ссылку.</li>
+          <li>Соперник перейдёт по ссылке, у него откроется актуальное состояние доски (перевёрнутое его цветом).</li>
+          <li>Чтобы сделать следующий ход, всегда нажимайте на <b>ПОСЛЕДНЮЮ присланную ссылку</b> из вашего чата.</li>
+        </ol>
+
+        <h4>💡 Важные особенности:</h4>
+        <ul>
+          <li><b>Разные соперники:</b> Чтобы сыграть с другим человеком, нажми «Сбросить доску», сделай ход и отправь новую ссылку в другой чат.</li>
+          <li><b>Превращение пешки:</b> Автоматически в Ферзя.</li>
+          <li><b>Защита от двойного хода:</b> Вы не можете походить дважды подряд.</li>
+        </ul>
+      </div>
+    </details>
   </div>
 
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -129,7 +206,7 @@
       } else {
         status = `Ход: ${moveColor}`;
         if (game.in_check()) status += ' (Шах!)';
-        if (moveMade) status = 'Ход сделан! Отправьте ссылку другу и ждите его ответного хода в чате.';
+        if (moveMade) status = 'Ход сделан! Отправьте ссылку другу и ждите его ответа.';
       }
       document.getElementById('status').innerText = status;
     }
@@ -152,7 +229,7 @@
       const currentFen = encodeURIComponent(game.fen());
       const baseUrl = window.location.origin + window.location.pathname;
       const gameUrl = `${baseUrl}?fen=${currentFen}`;
-      const text = encodeURIComponent(`Мой ход в Allegro Chess! Твой черёд:`);
+      const text = encodeURIComponent(`Мой ход в Allegro Chess! Твой черед:`);
       const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(gameUrl)}&text=${text}`;
 
       if (tg && tg.openTelegramLink) {
@@ -163,7 +240,6 @@
     }
 
     function resetGame() {
-      // Прямой сброс без системных alert/confirm, которые блокирует Telegram
       window.location.href = window.location.origin + window.location.pathname;
     }
   </script>
