@@ -29,13 +29,35 @@
       text-align: center;
       min-height: 2.4em;
     }
+    
+    /* Контейнер доски с отступами под разметку */
     #board {
       width: 100%;
       max-width: 360px;
       margin: 0 auto;
       box-shadow: 0 8px 24px rgba(0,0,0,0.6);
       border-radius: 8px;
-      overflow: hidden;
+      overflow: visible !important;
+      position: relative;
+    }
+
+    /* Вынос обозначений клеток (нотация) за пределы доски */
+    .notation-32298 {
+      color: #a0a0ab !important;
+      font-weight: bold;
+      font-size: 11px;
+    }
+
+    /* Буквы (вертикали) сдвигаем вниз под клетки */
+    .alpha-d2270 {
+      bottom: -18px !important;
+      right: 4px !important;
+    }
+
+    /* Цифры (горизонтали) сдвигаем влево за клетки */
+    .numeric-fc462 {
+      left: -16px !important;
+      top: 4px !important;
     }
 
     /* Подсветка выбранной фигуры (жёлтая заливка) */
@@ -50,7 +72,7 @@
     }
 
     .controls {
-      margin-top: 15px;
+      margin-top: 25px;
       display: flex;
       flex-direction: column;
       gap: 10px;
