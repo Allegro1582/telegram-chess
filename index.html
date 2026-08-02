@@ -1,16 +1,182 @@
-Шахматы по переписке
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Шахматы по переписке</title>
   
+  <!-- CSS библиотеки -->
+  <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   
-  
-  
-  
-  
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--tg-theme-bg-color, #181818);
+      color: var(--tg-theme-text-color, #ffffff);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 15px;
+      box-sizing: border-box;
+    }
+    #status {
+      font-size: 1.1rem;
+      margin-bottom: 15px;
+      font-weight: 600;
+      text-align: center;
+    }
+    #board {
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .controls {
+      margin-top: 20px;
+      display: flex;
+      gap: 10px;
+      width: 100%;
+      max-width: 400px;
+    }
+    button {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-send {
+      background-color: var(--tg-theme-button-color, #2ea6ff);
+      color: var(--tg-theme-button-text-color, #ffffff);
+    }
+    .btn-reset {
+      background-color: #e53935;
+      color: white;
+    }
+  </style>
+</head>
+<body>
 
+  <div id="status">Загрузка игры...</div>
+  <div id="board"></div>
 
+  <div class="controls">
+    <button class="btn-send" id="sendBtn" onclick="shareMove()" style="display:none;">📤 Отправить ход</button>
+    <button class="btn-reset" onclick="resetGame()">🔄 Начать заново</button>
+  </div>
 
-  Загрузка игры...
-  
+  <!-- JS библиотеки: jQuery, Chessboard, Chess.js -->
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
 
-  
-    📤 Отправить ход
-    🔄 Начать заново
+  <script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+
+    let board = null;
+    let game = new Chess();
+    let moveMade = false;
+
+    // Парсим параметры из URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const startFen = urlParams.get('fen');
+
+    if (startFen) {
+      game.load(decodeURIComponent(startFen));
+    }
+
+    function onDragStart (source, piece, position, orientation) {
+      if (game.game_over() || moveMade) return false;
+
+      // Нельзя двигать чужие фигуры
+      if ((game.turn() === 'w' && piece.search(/^b/) !== -1) ||
+          (game.turn() === 'b' && piece.search(/^w/) !== -1)) {
+        return false;
+      }
+    }
+
+    function onDrop (source, target) {
+      const move = game.move({
+        from: source,
+        to: target,
+        promotion: 'q' // Авто-превращение в ферзя
+      });
+
+      if (move === null) return 'snapback';
+
+      moveMade = true;
+      updateStatus();
+      document.getElementById('sendBtn').style.display = 'block';
+    }
+
+    function onSnapEnd () {
+      board.position(game.fen());
+    }
+
+    function updateStatus () {
+      let status = '';
+      let moveColor = game.turn() === 'b' ? 'Чёрные' : 'Белые';
+
+      if (game.in_checkmate()) {
+        status = `Мат! Победили ${game.turn() === 'w' ? 'Чёрные' : 'Белые'}.`;
+      } else if (game.in_draw()) {
+        status = 'Ничья!';
+      } else {
+        status = `Ход: ${moveColor}`;
+        if (game.in_check()) {
+          status += ' (Шах!)';
+        }
+        if (moveMade) {
+          status = 'Ход сделан! Нажмите "Отправить ход".';
+        }
+      }
+      document.getElementById('status').innerText = status;
+    }
+
+    // Инициализация доски
+    const currentTurn = game.turn();
+    const orientation = currentTurn === 'w' ? 'white' : 'black';
+
+    const config = {
+      draggable: true,
+      position: game.fen(),
+      orientation: orientation,
+      onDragStart: onDragStart,
+      onDrop: onDrop,
+      onSnapEnd: onSnapEnd,
+      pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
+    };
+
+    board = Chessboard('board', config);
+    updateStatus();
+
+    // Функция передачи хода через ссылку Telegram
+    function shareMove() {
+      const currentFen = encodeURIComponent(game.fen());
+      const baseUrl = window.location.origin + window.location.pathname;
+      const gameUrl = `${baseUrl}?fen=${currentFen}`;
+
+      const text = encodeURIComponent(`Я сделал ход в шахматах! Твой черед:`);
+      const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(gameUrl)}&text=${text}`;
+
+      tg.openTelegramLink(shareUrl);
+    }
+
+    function resetGame() {
+      if (confirm("Точно начать новую партию?")) {
+        const baseUrl = window.location.origin + window.location.pathname;
+        window.location.href = baseUrl;
+      }
+    }
+  </script>
+</body>
+</html>
