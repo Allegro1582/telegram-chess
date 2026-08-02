@@ -347,14 +347,22 @@
       const history = game.history({ verbose: true });
       const lastMove = history.length > 0 ? history[history.length - 1] : null;
       let moveText = '';
+      let statusText = 'Твой черед:';
       
       if (lastMove) {
         moveText = ` (${lastMove.from}-${lastMove.to})`;
       }
 
+      // Проверяем шах и мат для текста сообщения
+      if (game.in_checkmate()) {
+        statusText = ' (МАТ 🏆) Игра завершена!';
+      } else if (game.in_check()) {
+        statusText = '! (Шах ⚡) Твой черед:';
+      }
+
       const encodedFen = encodeURIComponent(game.fen());
       const gameUrl = `https://allegro1582.github.io/telegram-chess/?fen=${encodedFen}`;
-      const text = encodeURIComponent(`♟️ Мой ход${moveText}! Твой черед:`);
+      const text = encodeURIComponent(`♟️ Мой ход${moveText}${statusText}`);
       sendTelegramLink(gameUrl, text);
     }
 
