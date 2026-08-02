@@ -29,23 +29,32 @@
     
     .lang-selector {
       display: flex;
-      gap: 6px;
-      margin-bottom: 12px;
+      gap: 4px;
+      margin-bottom: 14px;
+      background: #141418;
+      padding: 4px;
+      border-radius: 10px;
+      border: 1px solid #2d2d38;
     }
     .lang-btn {
-      background: #262630;
-      border: 1px solid #33333e;
-      color: #a0a0ab;
-      padding: 4px 8px;
-      border-radius: 6px;
-      font-size: 0.8rem;
+      background: transparent;
+      border: none;
+      color: #8e8e99;
+      padding: 6px 12px;
+      border-radius: 7px;
+      font-size: 0.85rem;
       cursor: pointer;
-      font-weight: bold;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      letter-spacing: 0.5px;
+    }
+    .lang-btn:hover {
+      color: #ffffff;
     }
     .lang-btn.active {
       background: #2ea6ff;
       color: #ffffff;
-      border-color: #2ea6ff;
+      box-shadow: 0 2px 8px rgba(46, 166, 255, 0.4);
     }
 
     #status {
@@ -152,13 +161,13 @@
 </head>
 <body>
 
-  <!-- Переключатель языков -->
+  <!-- Аккуратный переключатель языков без вылезающих текстовых флагов -->
   <div class="lang-selector">
-    <button class="lang-btn" onclick="setLanguage('ru')">RU 🇷🇺</button>
-    <button class="lang-btn" onclick="setLanguage('ua')">UA 🇺🇦</button>
-    <button class="lang-btn" onclick="setLanguage('en')">EN 🇬🇧</button>
-    <button class="lang-btn" onclick="setLanguage('es')">ES 🇪🇸</button>
-    <button class="lang-btn" onclick="setLanguage('it')">IT 🇮🇹</button>
+    <button class="lang-btn" data-lang="ru" onclick="setLanguage('ru')">RU</button>
+    <button class="lang-btn" data-lang="ua" onclick="setLanguage('ua')">UA</button>
+    <button class="lang-btn" data-lang="en" onclick="setLanguage('en')">EN</button>
+    <button class="lang-btn" data-lang="es" onclick="setLanguage('es')">ES</button>
+    <button class="lang-btn" data-lang="it" onclick="setLanguage('it')">IT</button>
   </div>
 
   <div id="status">...</div>
@@ -185,7 +194,6 @@
     <details>
       <summary id="rulesHeader">📖 Rules & Guide</summary>
       <div class="rules-content" id="rulesContent">
-        <!-- Текст правил динамически подгружается JS -->
       </div>
     </details>
   </div>
@@ -198,7 +206,6 @@
     const tg = window.Telegram?.WebApp;
     if (tg) tg.expand();
 
-    // ---------------- БЛОК ЛОКАЛИЗАЦИИ ----------------
     const translations = {
       ru: {
         send: "📤 Отправить ход",
@@ -390,7 +397,7 @@
       localStorage.setItem('app_lang', lang);
       
       $('.lang-btn').removeClass('active');
-      $(`.lang-btn:contains("${lang.toUpperCase()}")`).addClass('active');
+      $(`.lang-btn[data-lang="${lang}"]`).addClass('active');
 
       const t = translations[currentLang];
       $('#sendBtn').text(t.send);
@@ -404,7 +411,6 @@
 
       updateStatus();
     }
-    // ----------------------------------------------------
 
     let board = null;
     let game = new Chess();
@@ -612,7 +618,6 @@
       window.location.href = 'https://allegro1582.github.io/telegram-chess/';
     }
 
-    // Запуск интерфейса с языком пользователя
     setLanguage(currentLang);
   </script>
 </body>
