@@ -125,6 +125,58 @@
       color: #d0d0d5;
     }
 
+    /* Модальное окно выбора уровня бота */
+    .bot-modal {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(20, 20, 26, 0.92);
+      backdrop-filter: blur(4px);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 600;
+      padding: 20px;
+      animation: fadeIn 0.3s ease forwards;
+    }
+    .bot-modal h3 {
+      margin: 0 0 16px 0;
+      color: #2ea6ff;
+      font-size: 1.3rem;
+      text-align: center;
+    }
+    .bot-levels {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 100%;
+      max-width: 240px;
+    }
+    .btn-level {
+      padding: 12px;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 1rem;
+      border: none;
+      cursor: pointer;
+      color: #ffffff;
+      transition: transform 0.1s;
+    }
+    .btn-level:active { transform: scale(0.97); }
+    .level-easy { background-color: #4caf50; }
+    .level-medium { background-color: #ff9800; }
+    .level-hard { background-color: #f44336; }
+    .btn-close-modal {
+      background: transparent;
+      border: none;
+      color: #8e8e99;
+      margin-top: 15px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    .btn-close-modal:hover { color: #ffffff; }
+
     @keyframes fadeIn {
       from { opacity: 0; transform: scale(0.95); }
       to { opacity: 1; transform: scale(1); }
@@ -233,6 +285,17 @@
       <h2 id="overlayTitle">💀 Поражение!</h2>
       <p id="overlaySub">Шах и мат</p>
     </div>
+
+    <!-- Модальное окно выбора уровня бота -->
+    <div id="botModal" class="bot-modal" style="display: none;">
+      <h3 id="modalTitle">🤖 Выберите уровень бота</h3>
+      <div class="bot-levels">
+        <button class="btn-level level-easy" onclick="startBotGame(2)" id="btnEasy">🟢 Легко</button>
+        <button class="btn-level level-medium" onclick="startBotGame(6)" id="btnMedium">🟡 Средне</button>
+        <button class="btn-level level-hard" onclick="startBotGame(10)" id="btnHard">🔴 Сложно</button>
+      </div>
+      <button class="btn-close-modal" onclick="closeBotModal()" id="btnCloseModal">Отмена</button>
+    </div>
   </div>
 
   <div class="controls">
@@ -247,7 +310,7 @@
     </div>
 
     <div class="action-buttons" id="mainOptions">
-      <button class="btn-bot" id="botBtn" onclick="startBotGame()">🤖 С ботом</button>
+      <button class="btn-bot" id="botBtn" onclick="openBotModal()">🤖 С ботом</button>
       <button class="btn-draw" id="drawBtn" onclick="offerDraw()">🤝 Draw?</button>
       <button class="btn-reset" id="resetBtn" onclick="resetGame()">🔄 Reset</button>
     </div>
@@ -279,6 +342,11 @@
         reset: "🔄 Сброс",
         bot: "🤖 С ботом",
         botThinking: "🤖 Бот думает...",
+        modalTitle: "🤖 Выберите уровень бота",
+        easy: "🟢 Легко",
+        medium: "🟡 Средне",
+        hard: "🔴 Сложно",
+        cancel: "Отмена",
         rulesTitle: "📖 Руководство пользователя",
         white: "Белые",
         black: "Чёрные",
@@ -312,7 +380,7 @@
           <h4>⚔️ Как играть с другом или ботом</h4>
           <ul>
             <li><b>С другом:</b> Переместите фигуру и нажмите <b>«📤 Отправить ход»</b>. Выберите чат с соперником. Всегда открывайте <b>самую последнюю ссылку</b> в чате.</li>
-            <li><b>С ботом:</b> Нажмите кнопку <b>«🤖 С ботом»</b>, чтобы сыграть тренировочную партию прямо в приложении против искусственного интеллекта.</li>
+            <li><b>С ботом:</b> Нажмите кнопку <b>«🤖 С ботом»</b>, выберите уровень сложности и сыграйте тренировочную партию прямо в приложении.</li>
           </ul>
 
           <h4>🏆 Завершение партии</h4>
@@ -321,7 +389,7 @@
           </ul>
 
           <h4>🌐 Параллельные игры</h4>
-          <p>Благодаря тому, что вы бросаете вызов в отдельном личном чате, вы можете играть с любым количеством игроков! Просто начните новую партию, написав боту, или прямо из любой текущей партии! Делайте первый ход, выбирайте нового игрока и ждите подтверждения в вашей с ним переписке. А что же текущая партия? Просто откройте её заново в вашей переписке по последней ссылке, и вы вернётесь туда, где закончили.</p>
+          <p>Благодаря тому, что вы бросаете вызов в отдельном личном чате, вы можете играть с любым количеством игроков! Просто начните новую партию, написав боту, или прямо из любой текущей партии! Делайте первый ход, выбирайте нового игрока и ждите подтверждения в вашей с ним переписке. А что же текущая партия? Просто откройте её заново в вашей переписке по последней ссылке, и вы вернетесь туда, где закончили.</p>
 
           <p style="text-align: center; margin-top: 15px; font-weight: bold; color: #2ea6ff;">Приятной игры!</p>
           <p style="text-align: center; font-size: 0.75rem; color: #70707a;">© 2026 Allegro Chess. All rights reserved.</p>
@@ -336,6 +404,11 @@
         reset: "🔄 Скидання",
         bot: "🤖 З ботом",
         botThinking: "🤖 Бот думає...",
+        modalTitle: "🤖 Виберіть рівень бота",
+        easy: "🟢 Легко",
+        medium: "🟡 Середньо",
+        hard: "🔴 Складно",
+        cancel: "Скасувати",
         rulesTitle: "📖 Інструкція користувача",
         white: "Білі",
         black: "Чорні",
@@ -369,7 +442,7 @@
           <h4>⚔️ Як грати з другом чи ботом</h4>
           <ul>
             <li><b>З другом:</b> Перемістіть фігуру та натисніть <b>«📤 Надіслати хід»</b>. Завжди відкривайте <b>найновіше посилання</b> у чаті.</li>
-            <li><b>З ботом:</b> Натисніть кнопку <b>«🤖 З ботом»</b> для тренувальної партії проти штучного інтелекту.</li>
+            <li><b>З ботом:</b> Натисніть кнопку <b>«🤖 З ботом»</b>, виберіть складність для тренувальної партії.</li>
           </ul>
 
           <h4>🏆 Завершення партії</h4>
@@ -393,6 +466,11 @@
         reset: "🔄 Reset",
         bot: "🤖 vs Bot",
         botThinking: "🤖 Bot is thinking...",
+        modalTitle: "🤖 Select Bot Difficulty",
+        easy: "🟢 Easy",
+        medium: "🟡 Medium",
+        hard: "🔴 Hard",
+        cancel: "Cancel",
         rulesTitle: "📖 User Guide",
         white: "White",
         black: "Black",
@@ -426,7 +504,7 @@
           <h4>⚔️ Playing with Friends or Bot</h4>
           <ul>
             <li><b>With Friends:</b> Move a piece and press <b>«📤 Send Move»</b>. Always open the <b>latest link</b> in your chat.</li>
-            <li><b>With Bot:</b> Tap <b>«🤖 vs Bot»</b> to practice locally against the AI.</li>
+            <li><b>With Bot:</b> Tap <b>«🤖 vs Bot»</b>, choose your difficulty and play against the AI.</li>
           </ul>
 
           <h4>🏆 Game Resolution</h4>
@@ -450,6 +528,11 @@
         reset: "🔄 Reiniciar",
         bot: "🤖 vs Bot",
         botThinking: "🤖 El bot está pensando...",
+        modalTitle: "🤖 Seleccionar Dificultad",
+        easy: "🟢 Fácil",
+        medium: "🟡 Medio",
+        hard: "🔴 Difícil",
+        cancel: "Cancelar",
         rulesTitle: "📖 Guía de usuario",
         white: "Blancas",
         black: "Negras",
@@ -483,7 +566,7 @@
           <h4>⚔️ Jugar con amigos o contra el Bot</h4>
           <ul>
             <li><b>Con amigos:</b> Mueve una pieza y pulsa <b>«📤 Enviar jugada»</b>. Abre siempre el <b>último enlace recibido</b>.</li>
-            <li><b>Contra el Bot:</b> Pulsa <b>«🤖 vs Bot»</b> para practicar localmente contra la IA.</li>
+            <li><b>Contra el Bot:</b> Pulsa <b>«🤖 vs Bot»</b>, elige la dificultad y juega contra la IA.</li>
           </ul>
 
           <h4>🏆 Finalización</h4>
@@ -507,6 +590,11 @@
         reset: "🔄 Ricomincia",
         bot: "🤖 vs Bot",
         botThinking: "🤖 Il bot sta pensando...",
+        modalTitle: "🤖 Seleziona Difficoltà",
+        easy: "🟢 Facile",
+        medium: "🟡 Medio",
+        hard: "🔴 Difficile",
+        cancel: "Annulla",
         rulesTitle: "📖 Guida Utente",
         white: "Bianchi",
         black: "Neri",
@@ -540,7 +628,7 @@
           <h4>⚔️ Giocare con Amici o contro il Bot</h4>
           <ul>
             <li><b>Con amici:</b> Muovi e premi <b>«📤 Invia Mossa»</b>. Apri sempre <b>l'ultimo link ricevuto</b>.</li>
-            <li><b>Contro il Bot:</b> Premi <b>«🤖 vs Bot»</b> per allenarti contro l'intelligenza artificiale.</li>
+            <li><b>Contro il Bot:</b> Premi <b>«🤖 vs Bot»</b>, seleziona la difficoltà e gioca contro l'IA.</li>
           </ul>
 
           <h4>🏆 Conclusione</h4>
@@ -575,6 +663,11 @@
       $('#drawBtn').text(t.draw);
       $('#resetBtn').text(t.reset);
       $('#botBtn').text(t.bot);
+      $('#modalTitle').text(t.modalTitle);
+      $('#btnEasy').text(t.easy);
+      $('#btnMedium').text(t.medium);
+      $('#btnHard').text(t.hard);
+      $('#btnCloseModal').text(t.cancel);
       $('#rulesHeader').text(t.rulesTitle);
       $('#rulesContent').html(t.rulesHtml);
 
@@ -586,6 +679,7 @@
     let initialFen = null;
     let selectedSquare = null;
     let vsBot = false;
+    let botDepth = 6;
     let stockfish = null;
 
     try {
@@ -613,14 +707,28 @@
     const rawFen = urlParams.get('fen');
     const isDrawOffer = urlParams.get('drawOffer') === 'true';
     const modeBot = urlParams.get('bot') === 'true';
+    const urlDepth = urlParams.get('depth');
 
     if (rawFen) {
       game.load(decodeURIComponent(rawFen));
     }
     if (modeBot) {
       vsBot = true;
+      if (urlDepth) botDepth = parseInt(urlDepth);
     }
     initialFen = game.fen();
+
+    function openBotModal() {
+      document.getElementById('botModal').style.display = 'flex';
+    }
+
+    function closeBotModal() {
+      document.getElementById('botModal').style.display = 'none';
+    }
+
+    function startBotGame(depth) {
+      window.location.href = `https://allegro1582.github.io/telegram-chess/?bot=true&depth=${depth}`;
+    }
 
     function removeHighlights () {
       $('#board .square-55d63').removeClass('highlight-selected highlight-hint highlight-capture');
@@ -677,10 +785,10 @@
       setTimeout(() => {
         if (stockfish) {
           stockfish.postMessage('position fen ' + game.fen());
-          stockfish.postMessage('go depth 6');
+          stockfish.postMessage('go depth ' + botDepth);
         } else {
           const moves = game.moves({ verbose: true });
-        if (moves.length > 0) {
+          if (moves.length > 0) {
             const randomMove = moves[Math.floor(Math.random() * moves.length)];
             game.move(randomMove);
             board.position(game.fen());
@@ -688,10 +796,6 @@
           }
         }
       }, 400);
-    }
-
-    function startBotGame() {
-      window.location.href = 'https://allegro1582.github.io/telegram-chess/?bot=true';
     }
 
     function handleSquareClick (square) {
@@ -761,21 +865,18 @@
       } else if (game.in_checkmate()) {
         status = `${t.checkmate}${game.turn() === 'w' ? t.black : t.white}.`;
         
-        // Определяем кто выиграл: текущий ход (game.turn()) проиграл, значит победил противоположный цвет
         const winnerColor = game.turn() === 'w' ? 'b' : 'w';
-        const boardOrientation = board.orientation(); // 'white' или 'black'
+        const boardOrientation = board.orientation();
         
         const overlay = document.getElementById('boardOverlay');
         const overlayTitle = document.getElementById('overlayTitle');
         const overlaySub = document.getElementById('overlaySub');
 
         if (winnerColor === boardOrientation[0]) {
-          // Победил игрок, чья сторона развернута на экране
           overlay.className = 'board-overlay victory';
           overlayTitle.innerText = t.victoryTitle;
           overlaySub.innerText = t.checkmateSub;
         } else {
-          // Победил соперник (поражение)
           overlay.className = 'board-overlay defeat';
           overlayTitle.innerText = t.defeatTitle;
           overlaySub.innerText = t.checkmateSub;
