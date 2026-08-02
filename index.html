@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Allegro Chess</title>
   
- <!-- Open Graph / Telegram Large Preview -->
+  <!-- Open Graph / Telegram Large Preview -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="Allegro Chess">
   <meta property="og:description" content="Free Chess on Telegram">
@@ -21,6 +21,7 @@
   <meta name="twitter:image" content="https://allegro1582.github.io/telegram-chess/AllegroChess2.jpg">
   
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.2/stockfish.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css">
   
   <style>
@@ -170,6 +171,7 @@
     .btn-accept { background-color: #4caf50; color: #ffffff; }
     .btn-decline { background-color: #f44336; color: #ffffff; }
     .btn-reset { background-color: #e53935; color: #ffffff; }
+    .btn-bot { background-color: #00b0ff; color: #ffffff; }
     
     .rules-container {
       width: 100%;
@@ -239,6 +241,7 @@
     </div>
 
     <div class="action-buttons" id="mainOptions">
+      <button class="btn-bot" id="botBtn" onclick="startBotGame()">🤖 С ботом</button>
       <button class="btn-draw" id="drawBtn" onclick="offerDraw()">🤝 Draw?</button>
       <button class="btn-reset" id="resetBtn" onclick="resetGame()">🔄 Reset</button>
     </div>
@@ -268,6 +271,8 @@
         decline: "❌ Отклонить",
         draw: "🤝 Ничья?",
         reset: "🔄 Сброс",
+        bot: "🤖 С ботом",
+        botThinking: "🤖 Бот думает...",
         rulesTitle: "📖 Руководство пользователя",
         white: "Белые",
         black: "Чёрные",
@@ -297,10 +302,10 @@
             <li><b>Корректировка:</b> Сделали неточный ход? Нажмите <b>«↩️ Переходить»</b>, чтобы отменить действие до отправки сообщения.</li>
           </ul>
 
-          <h4>⚔️ Как играть с другом</h4>
+          <h4>⚔️ Как играть с другом или ботом</h4>
           <ul>
-            <li><b>Сделайте первый ход:</b> Переместите фигуру и нажмите <b>«📤 Отправить ход»</b>. В выпадающем меню Telegram выберите чат с вашим будущим соперником.</li>
-            <li><b>Очередь ходов:</b> Каждое новое сообщение содержит актуальное состояние партии. Всегда открывайте <b>самую последнюю ссылку</b> в чате.</li>
+            <li><b>С другом:</b> Переместите фигуру и нажмите <b>«📤 Отправить ход»</b>. Выберите чат с соперником. Всегда открывайте <b>самую последнюю ссылку</b> в чате.</li>
+            <li><b>С ботом:</b> Нажмите кнопку <b>«🤖 С ботом»</b>, чтобы сыграть тренировочную партию прямо в приложении против искусственного интеллекта.</li>
           </ul>
 
           <h4>🏆 Завершение партии</h4>
@@ -322,6 +327,8 @@
         decline: "❌ Відхилити",
         draw: "🤝 Нічия?",
         reset: "🔄 Скидання",
+        bot: "🤖 З ботом",
+        botThinking: "🤖 Бот думає...",
         rulesTitle: "📖 Інструкція користувача",
         white: "Білі",
         black: "Чорні",
@@ -351,10 +358,10 @@
             <li><b>Коригування:</b> Зробили помилковий хід? Натисніть <b>«↩️ Переходити»</b>, щоб скасувати дію до надсилання повідомлення.</li>
           </ul>
 
-          <h4>⚔️ Як грати з другом</h4>
+          <h4>⚔️ Як грати з другом чи ботом</h4>
           <ul>
-            <li><b>Зробіть перший хід:</b> Перемістіть фігуру та натисніть <b>«📤 Надіслати хід»</b>. У меню Telegram виберіть чат із вашим майбутнім суперником.</li>
-            <li><b>Черговість ходів:</b> Кожне нове повідомлення містить актуальний стан партії. Завжди відкривайте <b>найновіше посилання</b> у чаті.</li>
+            <li><b>З другом:</b> Перемістіть фігуру та натисніть <b>«📤 Надіслати хід»</b>. Завжди відкривайте <b>найновіше посилання</b> у чаті.</li>
+            <li><b>З ботом:</b> Натисніть кнопку <b>«🤖 З ботом»</b> для тренувальної партії проти штучного інтелекту.</li>
           </ul>
 
           <h4>🏆 Завершення партії</h4>
@@ -376,6 +383,8 @@
         decline: "❌ Decline",
         draw: "🤝 Offer Draw",
         reset: "🔄 Reset",
+        bot: "🤖 vs Bot",
+        botThinking: "🤖 Bot is thinking...",
         rulesTitle: "📖 User Guide",
         white: "White",
         black: "Black",
@@ -405,10 +414,10 @@
             <li><b>Move Correction:</b> Made a mistake? Tap <b>«↩️ Undo Move»</b> to reset before sharing.</li>
           </ul>
 
-          <h4>⚔️ Playing with Friends</h4>
+          <h4>⚔️ Playing with Friends or Bot</h4>
           <ul>
-            <li><b>Make First Move:</b> Move a piece and press <b>«📤 Send Move»</b>. Select your opponent's chat in Telegram.</li>
-            <li><b>Turn Continuity:</b> Each shared link holds the live state of the match. Always open the <b>latest link</b> in your chat.</li>
+            <li><b>With Friends:</b> Move a piece and press <b>«📤 Send Move»</b>. Always open the <b>latest link</b> in your chat.</li>
+            <li><b>With Bot:</b> Tap <b>«🤖 vs Bot»</b> to practice locally against the AI.</li>
           </ul>
 
           <h4>🏆 Game Resolution</h4>
@@ -430,6 +439,8 @@
         decline: "❌ Rechazar",
         draw: "🤝 ¿Tablas?",
         reset: "🔄 Reiniciar",
+        bot: "🤖 vs Bot",
+        botThinking: "🤖 El bot está pensando...",
         rulesTitle: "📖 Guía de usuario",
         white: "Blancas",
         black: "Negras",
@@ -459,10 +470,10 @@
             <li><b>Corrección:</b> ¿Cometiste un error? Pulsa <b>«↩️ Deshacer»</b> para rectificar antes de enviar.</li>
           </ul>
 
-          <h4>⚔️ Jugar con un amigo</h4>
+          <h4>⚔️ Jugar con amigos o contra el Bot</h4>
           <ul>
-            <li><b>Primer movimiento:</b> Realiza tu jugada y pulsa <b>«📤 Enviar jugada»</b>. Selecciona el chat del rival en Telegram.</li>
-            <li><b>Continuidad:</b> Cada enlace guarda el estado actual del juego. Abre siempre el <b>último enlace recibido</b>.</li>
+            <li><b>Con amigos:</b> Mueve una pieza y pulsa <b>«📤 Enviar jugada»</b>. Abre siempre el <b>último enlace recibido</b>.</li>
+            <li><b>Contra el Bot:</b> Pulsa <b>«🤖 vs Bot»</b> para practicar localmente contra la IA.</li>
           </ul>
 
           <h4>🏆 Finalización</h4>
@@ -484,6 +495,8 @@
         decline: "❌ Rifiuta",
         draw: "🤝 Patta?",
         reset: "🔄 Ricomincia",
+        bot: "🤖 vs Bot",
+        botThinking: "🤖 Il bot sta pensando...",
         rulesTitle: "📖 Guida Utente",
         white: "Bianchi",
         black: "Neri",
@@ -513,10 +526,10 @@
             <li><b>Correzione:</b> Errore di valutazione? Premi <b>«↩️ Annulla»</b> prima di inviare.</li>
           </ul>
 
-          <h4>⚔️ Giocare con un Amico</h4>
+          <h4>⚔️ Giocare con Amici o contro il Bot</h4>
           <ul>
-            <li><b>Prima Mossa:</b> Muovi e premi <b>«📤 Invia Mossa»</b>. Seleziona la chat dell'avversario su Telegram.</li>
-            <li><b>Continuità:</b> Ogni link salva lo stato in tempo reale. Apri sempre <b>l'ultimo link ricevuto</b>.</li>
+            <li><b>Con amici:</b> Muovi e premi <b>«📤 Invia Mossa»</b>. Apri sempre <b>l'ultimo link ricevuto</b>.</li>
+            <li><b>Contro il Bot:</b> Premi <b>«🤖 vs Bot»</b> per allenarti contro l'intelligenza artificiale.</li>
           </ul>
 
           <h4>🏆 Conclusione</h4>
@@ -550,6 +563,7 @@
       $('#declineBtn').text(t.decline);
       $('#drawBtn').text(t.draw);
       $('#resetBtn').text(t.reset);
+      $('#botBtn').text(t.bot);
       $('#rulesHeader').text(t.rulesTitle);
       $('#rulesContent').html(t.rulesHtml);
       $('#overlayTitle').text(t.defeatTitle);
@@ -562,13 +576,41 @@
     let game = new Chess();
     let initialFen = null;
     let selectedSquare = null;
+    let vsBot = false;
+    let stockfish = null;
+
+    // Инициализация движка Stockfish
+    try {
+      stockfish = typeof Stockfish === 'function' ? Stockfish() : new Worker('https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.2/stockfish.js');
+      stockfish.onmessage = function(event) {
+        const msg = event.data || event;
+        if (typeof msg === 'string' && msg.startsWith('bestmove')) {
+          const moveString = msg.split(' ')[1];
+          if (moveString) {
+            const from = moveString.substring(0, 2);
+            const to = moveString.substring(2, 4);
+            const promotion = moveString.substring(4, 5) || 'q';
+            
+            game.move({ from: from, to: to, promotion: promotion });
+            board.position(game.fen());
+            updateStatus();
+          }
+        }
+      };
+    } catch(e) {
+      console.log('Stockfish init error:', e);
+    }
 
     const urlParams = new URLSearchParams(window.location.search);
     const rawFen = urlParams.get('fen');
     const isDrawOffer = urlParams.get('drawOffer') === 'true';
+    const modeBot = urlParams.get('bot') === 'true';
 
     if (rawFen) {
       game.load(decodeURIComponent(rawFen));
+    }
+    if (modeBot) {
+      vsBot = true;
     }
     initialFen = game.fen();
 
@@ -593,7 +635,9 @@
     }
 
     function makeMove (source, target) {
-      if (game.fen() !== initialFen) {
+      if (vsBot && game.turn() === 'b') return false;
+
+      if (!vsBot && game.fen() !== initialFen) {
         game.undo();
       }
 
@@ -608,13 +652,44 @@
       removeHighlights();
       board.position(game.fen());
       updateStatus();
-      document.getElementById('moveActions').style.display = 'flex';
+
+      if (!vsBot) {
+        document.getElementById('moveActions').style.display = 'flex';
+      } else if (!game.game_over() && game.turn() === 'b') {
+        // Ход бота
+        triggerBotMove();
+      }
+
       selectedSquare = null;
       return true;
     }
 
+    function triggerBotMove() {
+      const t = translations[currentLang];
+      document.getElementById('status').innerText = t.botThinking;
+      setTimeout(() => {
+        if (stockfish) {
+          stockfish.postMessage('position fen ' + game.fen());
+          stockfish.postMessage('go depth 6');
+        } else {
+          // Запасной рандомный ход, если движок не загрузился
+          const moves = game.moves({ verbose: true });
+          if (moves.length > 0) {
+            const randomMove = moves[Math.floor(Math.random() * moves.length)];
+            game.move(randomMove);
+            board.position(game.fen());
+            updateStatus();
+          }
+        }
+      }, 400);
+    }
+
+    function startBotGame() {
+      window.location.href = 'https://allegro1582.github.io/telegram-chess/?bot=true';
+    }
+
     function handleSquareClick (square) {
-      if (game.game_over() || isDrawOffer) return;
+      if (game.game_over() || isDrawOffer || (vsBot && game.turn() === 'b')) return;
 
       const piece = game.get(square);
       const isCurrentTurnPiece = piece && (
@@ -638,7 +713,7 @@
     }
 
     function onDragStart (source, piece) {
-      if (game.game_over() || isDrawOffer) return false;
+      if (game.game_over() || isDrawOffer || (vsBot && game.turn() === 'b')) return false;
       if ((game.turn() === 'w' && piece.search(/^b/) !== -1) ||
           (game.turn() === 'b' && piece.search(/^w/) !== -1)) {
         return false;
@@ -657,6 +732,7 @@
     }
 
     function undoMove() {
+      if (vsBot) return;
       game.load(initialFen);
       board.position(initialFen);
       removeHighlights();
@@ -685,7 +761,7 @@
       } else {
         document.getElementById('boardOverlay').style.display = 'none';
         const isMoved = game.fen() !== initialFen;
-        status = isMoved ? t.moved : `${t.turn}: ${moveColor}`;
+        status = (!vsBot && isMoved) ? t.moved : `${t.turn}: ${moveColor}`;
         if (game.in_check()) status += ` ${t.check}`;
       }
       document.getElementById('status').innerText = status;
@@ -737,6 +813,7 @@
     }
 
     function offerDraw() {
+      if (vsBot) return;
       const t = translations[currentLang];
       const encodedFen = encodeURIComponent(game.fen());
       const gameUrl = `https://allegro1582.github.io/telegram-chess/?fen=${encodedFen}&drawOffer=true`;
