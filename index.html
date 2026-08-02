@@ -108,10 +108,16 @@
     .board-overlay h2 {
       margin: 0;
       font-size: 2.2rem;
-      color: #ff4d4d;
       text-transform: uppercase;
       letter-spacing: 1.5px;
+    }
+    .board-overlay.defeat h2 {
+      color: #ff4d4d;
       text-shadow: 0 4px 12px rgba(255, 77, 77, 0.4);
+    }
+    .board-overlay.victory h2 {
+      color: #4caf50;
+      text-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
     }
     .board-overlay p {
       margin: 8px 0 0 0;
@@ -223,7 +229,7 @@
   
   <div class="board-container">
     <div id="board"></div>
-    <div id="boardOverlay" class="board-overlay" style="display: none;">
+    <div id="boardOverlay" class="board-overlay defeat" style="display: none;">
       <h2 id="overlayTitle">💀 Поражение!</h2>
       <p id="overlaySub">Шах и мат</p>
     </div>
@@ -281,6 +287,7 @@
         check: "(Шах!)",
         checkmate: "Мат! Победили ",
         defeatTitle: "💀 Поражение!",
+        victoryTitle: "🏆 Победа!",
         checkmateSub: "Шах и мат",
         drawGame: "🤝 Игра завершилась вничью!",
         drawOffer: "🤝 Соперник предлагает ничью!",
@@ -337,6 +344,7 @@
         check: "(Шах!)",
         checkmate: "Мат! Перемогли ",
         defeatTitle: "💀 Поразка!",
+        victoryTitle: "🏆 Перемога!",
         checkmateSub: "Шах і мат",
         drawGame: "🤝 Гра завершилася внічию!",
         drawOffer: "🤝 Суперник пропонує нічию!",
@@ -393,6 +401,7 @@
         check: "(Check!)",
         checkmate: "Checkmate! Winner: ",
         defeatTitle: "💀 Defeat!",
+        victoryTitle: "🏆 Victory!",
         checkmateSub: "Checkmate",
         drawGame: "🤝 Game ended in a draw!",
         drawOffer: "🤝 Opponent offers a draw!",
@@ -449,6 +458,7 @@
         check: "(¡Jaque!)",
         checkmate: "¡Jaque mate! Ganan las ",
         defeatTitle: "💀 ¡Derrota!",
+        victoryTitle: "🏆 ¡Victoria!",
         checkmateSub: "Jaque mate",
         drawGame: "🤝 ¡Partida en tablas!",
         drawOffer: "🤝 ¡El oponente ofrece tablas!",
@@ -505,6 +515,7 @@
         check: "(Scacco!)",
         checkmate: "Scacco matto! Vincono i ",
         defeatTitle: "💀 Sconfitta!",
+        victoryTitle: "🏆 Vittoria!",
         checkmateSub: "Scacco matto",
         drawGame: "🤝 Partita finita in patta!",
         drawOffer: "🤝 L'avversario propone la patta!",
@@ -566,8 +577,6 @@
       $('#botBtn').text(t.bot);
       $('#rulesHeader').text(t.rulesTitle);
       $('#rulesContent').html(t.rulesHtml);
-      $('#overlayTitle').text(t.defeatTitle);
-      $('#overlaySub').text(t.checkmateSub);
 
       updateStatus();
     }
@@ -579,7 +588,6 @@
     let vsBot = false;
     let stockfish = null;
 
-    // Инициализация движка Stockfish
     try {
       stockfish = typeof Stockfish === 'function' ? Stockfish() : new Worker('https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.2/stockfish.js');
       stockfish.onmessage = function(event) {
@@ -656,7 +664,6 @@
       if (!vsBot) {
         document.getElementById('moveActions').style.display = 'flex';
       } else if (!game.game_over() && game.turn() === 'b') {
-        // Ход бота
         triggerBotMove();
       }
 
@@ -672,9 +679,8 @@
           stockfish.postMessage('position fen ' + game.fen());
           stockfish.postMessage('go depth 6');
         } else {
-          // Запасной рандомный ход, если движок не загрузился
           const moves = game.moves({ verbose: true });
-          if (moves.length > 0) {
+        if (moves.length > 0) {
             const randomMove = moves[Math.floor(Math.random() * moves.length)];
             game.move(randomMove);
             board.position(game.fen());
@@ -754,7 +760,28 @@
         document.getElementById('boardOverlay').style.display = 'none';
       } else if (game.in_checkmate()) {
         status = `${t.checkmate}${game.turn() === 'w' ? t.black : t.white}.`;
-        document.getElementById('boardOverlay').style.display = 'flex';
+        
+        // Определяем кто выиграл: текущий ход (game.turn()) проиграл, значит победил противоположный цвет
+        const winnerColor = game.turn() === 'w' ? 'b' : 'w';
+        const boardOrientation = board.orientation(); // 'white' или 'black'
+        
+        const overlay = document.getElementById('boardOverlay');
+        const overlayTitle = document.getElementById('overlayTitle');
+        const overlaySub = document.getElementById('overlaySub');
+
+        if (winnerColor === boardOrientation[0]) {
+          // Победил игрок, чья сторона развернута на экране
+          overlay.className = 'board-overlay victory';
+          overlayTitle.innerText = t.victoryTitle;
+          overlaySub.innerText = t.checkmateSub;
+        } else {
+          // Победил соперник (поражение)
+          overlay.className = 'board-overlay defeat';
+          overlayTitle.innerText = t.defeatTitle;
+          overlaySub.innerText = t.checkmateSub;
+        }
+        overlay.style.display = 'flex';
+
       } else if (game.in_draw()) {
         status = t.drawGame;
         document.getElementById('boardOverlay').style.display = 'none';
