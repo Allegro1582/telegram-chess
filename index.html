@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Allegro Chess</title>
   
-  <!-- Метатеги для превью картинки в Telegram -->
   <meta property="og:title" content="Allegro Chess">
   <meta property="og:description" content="Сыграем партию в шахматы в Telegram!">
   <meta property="og:image" content="https://allegro1582.github.io/telegram-chess/AllegroChess2.jpg">
@@ -45,26 +44,12 @@
       position: relative;
     }
 
-    .notation-32298 {
-      color: #a0a0ab !important;
-      font-weight: bold;
-      font-size: 11px;
-    }
+    .notation-32298 { color: #a0a0ab !important; font-weight: bold; font-size: 11px; }
     .alpha-d2270 { bottom: -18px !important; right: 4px !important; }
     .numeric-fc462 { left: -16px !important; top: 4px !important; }
 
-    /* Подсветка выбранной фигуры */
-    .highlight-selected {
-      background-color: rgba(255, 235, 59, 0.5) !important;
-    }
-
-    /* Подсветка доступных ходов (пустые клетки) */
-    .highlight-hint {
-      box-shadow: inset 0 0 0 3px #4caf50 !important;
-      cursor: pointer !important;
-    }
-
-    /* Подсветка клеток для атаки/взятия (красная рамка + мечи) */
+    .highlight-selected { background-color: rgba(255, 235, 59, 0.5) !important; }
+    .highlight-hint { box-shadow: inset 0 0 0 3px #4caf50 !important; cursor: pointer !important; }
     .highlight-capture {
       box-shadow: inset 0 0 0 3px #f44336 !important;
       cursor: pointer !important;
@@ -73,8 +58,7 @@
     .highlight-capture::after {
       content: "⚔️";
       position: absolute;
-      top: 50%;
-      left: 50%;
+      top: 50%; left: 50%;
       transform: translate(-50%, -50%);
       font-size: 28px;
       pointer-events: none;
@@ -91,11 +75,7 @@
       width: 100%;
       max-width: 360px;
     }
-    .action-buttons {
-      display: flex;
-      gap: 10px;
-      width: 100%;
-    }
+    .action-buttons { display: flex; gap: 10px; width: 100%; }
     button {
       flex: 1;
       padding: 12px 8px;
@@ -159,13 +139,11 @@
       <button class="btn-undo" onclick="undoMove()">↩️ Переходить</button>
     </div>
 
-    <!-- Кнопки ответа на предложение ничьей -->
     <div class="action-buttons" id="drawOfferActions" style="display:none;">
       <button class="btn-accept" onclick="acceptDraw()">✅ Принять ничью</button>
       <button class="btn-decline" onclick="declineDraw()">❌ Отклонить</button>
     </div>
 
-    <!-- Основные опции -->
     <div class="action-buttons" id="mainOptions">
       <button class="btn-draw" id="drawBtn" onclick="offerDraw()">🤝 Ничья?</button>
       <button class="btn-reset" onclick="resetGame()">🔄 Сброс</button>
@@ -177,32 +155,30 @@
       <summary>📖 Полные правила и инструкция</summary>
       <div class="rules-content">
         <h4>♟️ 1. Управление и ходы</h4>
-        <p>Вы можете делать ход любым удобным способом:</p>
         <ul>
-          <li><b>Клик и выбор:</b> Нажмите на фигуру (подсветится жёлтым). Пустые клетки подсвечиваются <b>зелёной кромкой</b>, а клетки с врагами — <b>красной кромкой и мечами ⚔️</b> (взятие).</li>
+          <li><b>Клик и выбор:</b> Нажмите на фигуру (подсветится жёлтым). Пустые клетки подсвечиваются <b>зелёной кромкой</b>, а клетки с врагами — <b>красной кромкой и мечами ⚔️</b>.</li>
           <li><b>Перетаскивание:</b> Зажмите фигуру и перетащите её на нужную клетку.</li>
           <li><b>Отмена хода:</b> До нажатия кнопки «Отправить ход» вы можете изменить решение или нажать <b>«↩️ Переходить»</b>.</li>
         </ul>
 
         <h4>🔄 2. Пошаговый процесс партии</h4>
         <ol>
-          <li><b>Первый ход (Белые):</b> Игрок открывает чистую доску, делает ход и нажимает <b>«📤 Отправить ход»</b>. В меню Telegram выбирает чат с соперником и отправляет ссылку.</li>
-          <li><b>Ответный ход (Чёрные):</b> Соперник нажимает на ссылку в чате. Игра открывается с выполненным ходом белых, а доска автоматически разворачивается чёрными вниз.</li>
-          <li><b>Продолжение игры:</b> Каждая ссылка хранит в себе всю историю партии. Чтобы сделать свой очередной ход, <b>всегда нажимайте на ПОСЛЕДНЮЮ присланную ссылку</b> из вашего чата.</li>
+          <li><b>Первый ход (Белые):</b> Игрок делает ход и нажимает <b>«📤 Отправить ход»</b>. Выберите чат с соперником.</li>
+          <li><b>Ответный ход (Чёрные):</b> Соперник нажимает на ссылку в чате. Игра открывается с выполненным ходом.</li>
+          <li><b>Продолжение игры:</b> Всегда нажимайте на <b>ПОСЛЕДНЮЮ присланную ссылку</b> из вашего чата.</li>
         </ol>
 
-        <h4>🏆 3. Состояния игры (Шах, Мат, Ничья)</h4>
+        <h4>🏆 3. Состояния игры</h4>
         <ul>
-          <li><b>Шах:</b> Отображается надписью <code>(Шах!)</code> вверху экрана.</li>
-          <li><b>Мат:</b> Блокирует доску и выводит финальный результат. Вы можете отправить финальный ход сопернику.</li>
-          <li><b>Предложение ничьей:</b> Нажмите <b>«🤝 Ничья?»</b>. У соперника появятся кнопки «Принять» или «Отклонить».</li>
-          <li><b>Автоматическая ничья:</b> Игра сама фиксирует пат, повторение позиций или недостаток фигур.</li>
+          <li><b>Шах:</b> Отображается надписью <code>(Шах!)</code>.</li>
+          <li><b>Мат:</b> Блокирует доску и выводит результат.</li>
+          <li><b>Ничья:</b> Нажмите <b>«🤝 Ничья?»</b> для предложения мира.</li>
         </ul>
 
         <h4>💡 4. Важные особенности</h4>
         <ul>
-          <li><b>Параллельные игры:</b> Для игры с новым человеком нажмите <b>«🔄 Сброс»</b>, сделайте первый ход и отправьте новую ссылку. Партии не пересекаются.</li>
-          <li><b>Превращение пешки:</b> Автоматически в Ферзя при доходе до последней горизонтали.</li>
+          <li><b>Параллельные игры:</b> Для игры с новым человеком нажмите <b>«🔄 Сброс»</b>.</li>
+          <li><b>Превращение пешки:</b> Автоматически в Ферзя.</li>
         </ul>
       </div>
     </details>
@@ -221,12 +197,20 @@
     let initialFen = null;
     let selectedSquare = null;
 
+    // Вспомогательные функции для красивого FEN в URL
+    function encodeFen(fen) {
+      return fen.replace(/\//g, '_').replace(/ /g, '-');
+    }
+    function decodeFen(shortFen) {
+      return shortFen.replace(/_/g, '/').replace(/-/g, ' ');
+    }
+
     const urlParams = new URLSearchParams(window.location.search);
     const startFen = urlParams.get('fen');
     const isDrawOffer = urlParams.get('drawOffer') === 'true';
 
     if (startFen) {
-      game.load(decodeURIComponent(startFen));
+      game.load(decodeFen(decodeURIComponent(startFen)));
     }
     initialFen = game.fen();
 
@@ -372,21 +356,21 @@
       let moveText = '';
       
       if (lastMove) {
-        moveText = ` (ход ${lastMove.from}-${lastMove.to})`;
+        moveText = ` (${lastMove.from}-${lastMove.to})`;
       }
 
-      const currentFen = encodeURIComponent(game.fen());
+      const shortFen = encodeFen(game.fen());
       const baseUrl = window.location.origin + window.location.pathname;
-      const gameUrl = `${baseUrl}?fen=${currentFen}`;
-      const text = encodeURIComponent(`♟️ Мой ход${moveText} в Allegro Chess! Твой черёд:`);
+      const gameUrl = `${baseUrl}?fen=${shortFen}`;
+      const text = encodeURIComponent(`♟️ Мой ход${moveText}! Твой черед:`);
       sendTelegramLink(gameUrl, text);
     }
 
     function offerDraw() {
-      const currentFen = encodeURIComponent(game.fen());
+      const shortFen = encodeFen(game.fen());
       const baseUrl = window.location.origin + window.location.pathname;
-      const gameUrl = `${baseUrl}?fen=${currentFen}&drawOffer=true`;
-      const text = encodeURIComponent(`🤝 Я предлагаю ничью в Allegro Chess! Принимаешь?`);
+      const gameUrl = `${baseUrl}?fen=${shortFen}&drawOffer=true`;
+      const text = encodeURIComponent(`🤝 Предлагаю ничью! Принимаешь?`);
       sendTelegramLink(gameUrl, text);
     }
 
@@ -397,7 +381,8 @@
     }
 
     function declineDraw() {
-      window.location.href = window.location.origin + window.location.pathname + `?fen=${encodeURIComponent(game.fen())}`;
+      const shortFen = encodeFen(game.fen());
+      window.location.href = window.location.origin + window.location.pathname + `?fen=${shortFen}`;
     }
 
     function sendTelegramLink(gameUrl, text) {
