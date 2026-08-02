@@ -40,9 +40,15 @@
     .controls {
       margin-top: 15px;
       display: flex;
+      flex-direction: column;
       gap: 10px;
       width: 100%;
       max-width: 360px;
+    }
+    .action-buttons {
+      display: flex;
+      gap: 10px;
+      width: 100%;
     }
     button {
       flex: 1;
@@ -57,12 +63,15 @@
       background-color: #2ea6ff;
       color: #ffffff;
     }
+    .btn-undo {
+      background-color: #ff9800;
+      color: #ffffff;
+    }
     .btn-reset {
       background-color: #e53935;
       color: #ffffff;
     }
     
-    /* Стили блока правил */
     .rules-container {
       width: 100%;
       max-width: 360px;
@@ -72,9 +81,7 @@
       overflow: hidden;
       background-color: #262630;
     }
-    details {
-      width: 100%;
-    }
+    details { width: 100%; }
     summary {
       padding: 12px 15px;
       font-weight: bold;
@@ -93,9 +100,7 @@
       font-size: 0.8rem;
       transition: transform 0.2s;
     }
-    details[open] summary::after {
-      transform: rotate(90deg);
-    }
+    details[open] summary::after { transform: rotate(90deg); }
     .rules-content {
       padding: 0 15px 15px 15px;
       font-size: 0.85rem;
@@ -103,14 +108,8 @@
       color: #d0d0d5;
       border-top: 1px solid #33333e;
     }
-    .rules-content h4 {
-      margin: 12px 0 4px 0;
-      color: #ffffff;
-    }
-    .rules-content ol, .rules-content ul {
-      margin: 4px 0;
-      padding-left: 18px;
-    }
+    .rules-content h4 { margin: 12px 0 4px 0; color: #ffffff; }
+    .rules-content ol, .rules-content ul { margin: 4px 0; padding-left: 18px; }
   </style>
 </head>
 <body>
@@ -119,11 +118,13 @@
   <div id="board"></div>
 
   <div class="controls">
-    <button class="btn-send" id="sendBtn" onclick="shareMove()" style="display:none;">📤 Отправить ход</button>
+    <div class="action-buttons" id="moveActions" style="display:none;">
+      <button class="btn-send" id="sendBtn" onclick="shareMove()">📤 Отправить ход</button>
+      <button class="btn-undo" onclick="undoMove()">↩️ Переходить</button>
+    </div>
     <button class="btn-reset" onclick="resetGame()">🔄 Сбросить доску</button>
   </div>
 
-  <!-- Встроенный блок правил -->
   <div class="rules-container">
     <details>
       <summary>📖 Как играть и правила</summary>
@@ -134,9 +135,8 @@
         <h4>🔄 Пошаговый процесс:</h4>
         <ol>
           <li>Сделайте ход на доске по правилам шахмат.</li>
-          <li>Нажмите синюю кнопку <b>«Отправить ход»</b>.</li>
-          <li>Выберите чат с соперником и отправьте ему сформированную ссылку.</li>
-          <li>Соперник перейдёт по ссылке, у него откроется актуальное состояние доски (перевёрнутое его цветом).</li>
+          <li>Вы можете переходить, пока не нажали <b>«Отправить ход»</b>.</li>
+          <li>Нажмите синюю кнопку <b>«Отправить ход»</b> и выберите чат с соперником.</li>
           <li>Чтобы сделать следующий ход, всегда нажимайте на <b>ПОСЛЕДНЮЮ присланную ссылку</b> из вашего чата.</li>
         </ol>
 
@@ -144,7 +144,6 @@
         <ul>
           <li><b>Разные соперники:</b> Чтобы сыграть с другим человеком, нажми «Сбросить доску», сделай ход и отправь новую ссылку в другой чат.</li>
           <li><b>Превращение пешки:</b> Автоматически в Ферзя.</li>
-          <li><b>Защита от двойного хода:</b> Вы не можете походить дважды подряд.</li>
         </ul>
       </div>
     </details>
@@ -160,7 +159,7 @@
 
     let board = null;
     let game = new Chess();
-    let moveMade = false;
+    let initialFen = null;
 
     const urlParams = new URLSearchParams(window.location.search);
     const startFen = urlParams.get('fen');
@@ -168,9 +167,11 @@
     if (startFen) {
       game.load(decodeURIComponent(startFen));
     }
+    initialFen = game.fen(); // Запоминаем исходное состояние в начале хода
 
     function onDragStart (source, piece) {
-      if (game.game_over() || moveMade) return false;
+      if (game.game_over()) return false;
+      // Запрет двигать фигуры соперника
       if ((game.turn() === 'w' && piece.search(/^b/) !== -1) ||
           (game.turn() === 'b' && piece.search(/^w/) !== -1)) {
         return false;
@@ -178,6 +179,11 @@
     }
 
     function onDrop (source, target) {
+      // Если уже переходили в этом сеансе, сначала сбрасываем состояние
+      if (game.fen() !== initialFen) {
+        game.undo();
+      }
+
       const move = game.move({
         from: source,
         to: target,
@@ -186,13 +192,19 @@
 
       if (move === null) return 'snapback';
 
-      moveMade = true;
       updateStatus();
-      document.getElementById('sendBtn').style.display = 'block';
+      document.getElementById('moveActions').style.display = 'flex';
     }
 
     function onSnapEnd () {
       board.position(game.fen());
+    }
+
+    function undoMove() {
+      game.load(initialFen);
+      board.position(initialFen);
+      document.getElementById('moveActions').style.display = 'none';
+      updateStatus();
     }
 
     function updateStatus () {
@@ -204,9 +216,9 @@
       } else if (game.in_draw()) {
         status = 'Ничья!';
       } else {
-        status = `Ход: ${moveColor}`;
+        const isMoved = game.fen() !== initialFen;
+        status = isMoved ? 'Ход сделан! Нажмите "Отправить ход" или переходите.' : `Ход: ${moveColor}`;
         if (game.in_check()) status += ' (Шах!)';
-        if (moveMade) status = 'Ход сделан! Отправьте ссылку другу и ждите его ответа.';
       }
       document.getElementById('status').innerText = status;
     }
