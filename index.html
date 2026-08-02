@@ -45,24 +45,37 @@
       font-weight: bold;
       font-size: 11px;
     }
+    .alpha-d2270 { bottom: -18px !important; right: 4px !important; }
+    .numeric-fc462 { left: -16px !important; top: 4px !important; }
 
-    .alpha-d2270 {
-      bottom: -18px !important;
-      right: 4px !important;
-    }
-
-    .numeric-fc462 {
-      left: -16px !important;
-      top: 4px !important;
-    }
-
+    /* Подсветка выбранной фигуры */
     .highlight-selected {
       background-color: rgba(255, 235, 59, 0.5) !important;
     }
 
+    /* Подсветка доступных ходов (пустые клетки) */
     .highlight-hint {
       box-shadow: inset 0 0 0 3px #4caf50 !important;
       cursor: pointer !important;
+    }
+
+    /* Подсветка клеток для атаки/взятия (красная рамка + мечи) */
+    .highlight-capture {
+      box-shadow: inset 0 0 0 3px #f44336 !important;
+      cursor: pointer !important;
+      position: relative;
+    }
+    .highlight-capture::after {
+      content: "⚔️";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 28px;
+      pointer-events: none; /* Чтобы клик проходил сквозь иконку */
+      z-index: 100;
+      opacity: 0.9;
+      text-shadow: 0px 0px 8px rgba(0,0,0,0.9);
     }
 
     .controls {
@@ -160,7 +173,7 @@
       <div class="rules-content">
         <h4>♟️ Управление и ходы</h4>
         <ul>
-          <li><b>Клик и выбор:</b> Нажмите на фигуру, затем на зелёную кромку.</li>
+          <li><b>Клик и выбор:</b> Нажмите на фигуру, затем на зелёную кромку. Если на клетке враг (появятся ⚔️) — вы съедите фигуру.</li>
           <li><b>Предложение ничьей:</b> Нажмите «🤝 Ничья?», чтобы выслать предложение сопернику.</li>
         </ul>
         <h4>🔄 Пошаговый процесс:</h4>
@@ -196,7 +209,7 @@
     initialFen = game.fen();
 
     function removeHighlights () {
-      $('#board .square-55d63').removeClass('highlight-selected highlight-hint');
+      $('#board .square-55d63').removeClass('highlight-selected highlight-hint highlight-capture');
     }
 
     function showLegalMoves (square) {
@@ -206,7 +219,13 @@
 
       $('#board .square-' + square).addClass('highlight-selected');
       for (let i = 0; i < moves.length; i++) {
-        $('#board .square-' + moves[i].to).addClass('highlight-hint');
+        const move = moves[i];
+        // Если флаг хода содержит 'c' (capture) или 'e' (en passant) - это взятие вражеской фигуры
+        if (move.flags.includes('c') || move.flags.includes('e')) {
+          $('#board .square-' + move.to).addClass('highlight-capture');
+        } else {
+          $('#board .square-' + move.to).addClass('highlight-hint');
+        }
       }
     }
 
