@@ -26,6 +26,28 @@
       margin: 0;
       padding: 15px;
     }
+    
+    .lang-selector {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .lang-btn {
+      background: #262630;
+      border: 1px solid #33333e;
+      color: #a0a0ab;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .lang-btn.active {
+      background: #2ea6ff;
+      color: #ffffff;
+      border-color: #2ea6ff;
+    }
+
     #status {
       font-size: 1.1rem;
       margin-bottom: 12px;
@@ -130,56 +152,40 @@
 </head>
 <body>
 
-  <div id="status">Загрузка игры...</div>
+  <!-- Переключатель языков -->
+  <div class="lang-selector">
+    <button class="lang-btn" onclick="setLanguage('ru')">RU 🇷🇺</button>
+    <button class="lang-btn" onclick="setLanguage('ua')">UA 🇺🇦</button>
+    <button class="lang-btn" onclick="setLanguage('en')">EN 🇬🇧</button>
+    <button class="lang-btn" onclick="setLanguage('es')">ES 🇪🇸</button>
+    <button class="lang-btn" onclick="setLanguage('it')">IT 🇮🇹</button>
+  </div>
+
+  <div id="status">...</div>
   <div id="board"></div>
 
   <div class="controls">
     <div class="action-buttons" id="moveActions" style="display:none;">
-      <button class="btn-send" id="sendBtn" onclick="shareMove()">📤 Отправить ход</button>
-      <button class="btn-undo" onclick="undoMove()">↩️ Переходить</button>
+      <button class="btn-send" id="sendBtn" onclick="shareMove()">📤 Send Move</button>
+      <button class="btn-undo" id="undoBtn" onclick="undoMove()">↩️ Undo</button>
     </div>
 
     <div class="action-buttons" id="drawOfferActions" style="display:none;">
-      <button class="btn-accept" onclick="acceptDraw()">✅ Принять ничью</button>
-      <button class="btn-decline" onclick="declineDraw()">❌ Отклонить</button>
+      <button class="btn-accept" id="acceptBtn" onclick="acceptDraw()">✅ Accept</button>
+      <button class="btn-decline" id="declineBtn" onclick="declineDraw()">❌ Decline</button>
     </div>
 
     <div class="action-buttons" id="mainOptions">
-      <button class="btn-draw" id="drawBtn" onclick="offerDraw()">🤝 Ничья?</button>
-      <button class="btn-reset" onclick="resetGame()">🔄 Сброс</button>
+      <button class="btn-draw" id="drawBtn" onclick="offerDraw()">🤝 Draw?</button>
+      <button class="btn-reset" id="resetBtn" onclick="resetGame()">🔄 Reset</button>
     </div>
   </div>
 
   <div class="rules-container">
     <details>
-      <summary>📖 Полные правила и инструкция</summary>
-      <div class="rules-content">
-        <h4>♟️ 1. Управление и ходы</h4>
-        <ul>
-          <li><b>Клик и выбор:</b> Нажмите на фигуру (подсветится жёлтым). Пустые клетки подсвечиваются <b>зелёной кромкой</b>, а клетки с врагами — <b>красной кромкой и мечами ⚔️</b>.</li>
-          <li><b>Перетаскивание:</b> Зажмите фигуру и перетащите её на нужную клетку.</li>
-          <li><b>Отмена хода:</b> До нажатия кнопки «Отправить ход» вы можете изменить решение или нажать <b>«↩️ Переходить»</b>.</li>
-        </ul>
-
-        <h4>🔄 2. Пошаговый процесс партии</h4>
-        <ol>
-          <li><b>Первый ход (Белые):</b> Игрок делает ход и нажимает <b>«📤 Отправить ход»</b>. Выберите чат с соперником.</li>
-          <li><b>Ответный ход (Чёрные):</b> Соперник нажимает на ссылку в чате. Игра открывается с выполненным ходом.</li>
-          <li><b>Продолжение игры:</b> Всегда нажимайте на <b>ПОСЛЕДНЮЮ присланную ссылку</b> из вашего чата.</li>
-        </ol>
-
-        <h4>🏆 3. Состояния игры</h4>
-        <ul>
-          <li><b>Шах:</b> Отображается надписью <code>(Шах!)</code>.</li>
-          <li><b>Мат:</b> Блокирует доску и выводит результат.</li>
-          <li><b>Ничья:</b> Нажмите <b>«🤝 Ничья?»</b> для предложения мира.</li>
-        </ul>
-
-        <h4>💡 4. Важные особенности</h4>
-        <ul>
-          <li><b>Параллельные игры:</b> Для игры с новым человеком нажмите <b>«🔄 Сброс»</b>.</li>
-          <li><b>Превращение пешки:</b> Автоматически в Ферзя.</li>
-        </ul>
+      <summary id="rulesHeader">📖 Rules & Guide</summary>
+      <div class="rules-content" id="rulesContent">
+        <!-- Текст правил динамически подгружается JS -->
       </div>
     </details>
   </div>
@@ -192,12 +198,219 @@
     const tg = window.Telegram?.WebApp;
     if (tg) tg.expand();
 
+    // ---------------- БЛОК ЛОКАЛИЗАЦИИ ----------------
+    const translations = {
+      ru: {
+        send: "📤 Отправить ход",
+        undo: "↩️ Переходить",
+        accept: "✅ Принять ничью",
+        decline: "❌ Отклонить",
+        draw: "🤝 Ничья?",
+        reset: "🔄 Сброс",
+        rulesTitle: "📖 Полные правила и инструкция",
+        white: "Белые",
+        black: "Чёрные",
+        turn: "Ход",
+        moved: "Ход сделан! Нажмите \"Отправить ход\".",
+        check: "(Шах!)",
+        checkmate: "Мат! Победили ",
+        drawGame: "🤝 Игра завершилась вничью!",
+        drawOffer: "🤝 Соперник предлагает ничью!",
+        drawAccepted: "🤝 Вы приняли ничью!",
+        myMoveText: "♟️ Мой ход",
+        yourTurnText: "Твой черед:",
+        checkText: "! (Шах ⚡) Твой черед:",
+        checkmateText: " (МАТ 🏆) Игра завершена!",
+        drawOfferText: "🤝 Предлагаю ничью! Принимаешь?",
+        rulesHtml: `
+          <h4>♟️ 1. Управление и ходы</h4>
+          <ul>
+            <li><b>Клик и выбор:</b> Нажмите на фигуру. Пустые клетки подсвечиваются <b>зелёной кромкой</b>, а вражеские — <b>красной кромкой и мечами ⚔️</b>.</li>
+            <li><b>Перетаскивание:</b> Зажмите фигуру и перетащите её.</li>
+            <li><b>Отмена хода:</b> До нажатия «Отправить ход» можно нажать <b>«↩️ Переходить»</b>.</li>
+          </ul>
+          <h4>🔄 2. Пошаговый процесс</h4>
+          <ol>
+            <li><b>Ход:</b> Сделайте ход и нажмите <b>«📤 Отправить ход»</b>. Выберите чат с соперником.</li>
+            <li><b>Продолжение:</b> Нажимайте на <b>ПОСЛЕДНЮЮ присланную ссылку</b> из вашего чата.</li>
+          </ol>
+        `
+      },
+      ua: {
+        send: "📤 Надіслати хід",
+        undo: "↩️ Переходити",
+        accept: "✅ Прийняти нічию",
+        decline: "❌ Відхилити",
+        draw: "🤝 Нічия?",
+        reset: "🔄 Скидання",
+        rulesTitle: "📖 Повні правила та інструкція",
+        white: "Білі",
+        black: "Чорні",
+        turn: "Хід",
+        moved: "Хід зроблено! Натисніть \"Надіслати хід\".",
+        check: "(Шах!)",
+        checkmate: "Мат! Перемогли ",
+        drawGame: "🤝 Гра завершилася внічию!",
+        drawOffer: "🤝 Суперник пропонує нічию!",
+        drawAccepted: "🤝 Ви прийняли нічию!",
+        myMoveText: "♟️ Мій хід",
+        yourTurnText: "Твоя черга:",
+        checkText: "! (Шах ⚡) Твоя черга:",
+        checkmateText: " (МАТ 🏆) Гра завершена!",
+        drawOfferText: "🤝 Пропоную нічию! Приймаєш?",
+        rulesHtml: `
+          <h4>♟️ 1. Керування та ходи</h4>
+          <ul>
+            <li><b>Клік та вибір:</b> Натисніть на фігуру. Порожні клітинки підсвічуються <b>зеленим</b>, а ворожі — <b>червоним та мечами ⚔️</b>.</li>
+            <li><b>Перетягування:</b> Затисніть фігуру та перетягніть її.</li>
+            <li><b>Скасування ходу:</b> До натискання «Надіслати хід» можна натиснути <b>«↩️ Переходити»</b>.</li>
+          </ul>
+          <h4>🔄 2. Покроковий процес</h4>
+          <ol>
+            <li><b>Хід:</b> Зробіть хід та натисніть <b>«📤 Надіслати хід»</b>. Виберіть чат із суперником.</li>
+            <li><b>Продовження:</b> Завжди натискайте на <b>ОСТАННЄ надіслане посилання</b>.</li>
+          </ol>
+        `
+      },
+      en: {
+        send: "📤 Send Move",
+        undo: "↩️ Undo Move",
+        accept: "✅ Accept Draw",
+        decline: "❌ Decline",
+        draw: "🤝 Offer Draw",
+        reset: "🔄 Reset",
+        rulesTitle: "📖 Rules & Instructions",
+        white: "White",
+        black: "Black",
+        turn: "Turn",
+        moved: "Move done! Press \"Send Move\".",
+        check: "(Check!)",
+        checkmate: "Checkmate! Winner: ",
+        drawGame: "🤝 Game ended in a draw!",
+        drawOffer: "🤝 Opponent offers a draw!",
+        drawAccepted: "🤝 Draw accepted!",
+        myMoveText: "♟️ My move",
+        yourTurnText: "Your turn:",
+        checkText: "! (Check ⚡) Your turn:",
+        checkmateText: " (CHECKMATE 🏆) Game over!",
+        drawOfferText: "🤝 Offering a draw! Accept?",
+        rulesHtml: `
+          <h4>♟️ 1. Controls & Moves</h4>
+          <ul>
+            <li><b>Click & Select:</b> Tap a piece. Empty squares highlight in <b>green</b>, enemy squares in <b>red with swords ⚔️</b>.</li>
+            <li><b>Drag & Drop:</b> Drag pieces to target squares.</li>
+            <li><b>Undo:</b> Before sending, press <b>«↩️ Undo Move»</b> to retry.</li>
+          </ul>
+          <h4>🔄 2. Game Flow</h4>
+          <ol>
+            <li><b>Make a Move:</b> Move and press <b>«📤 Send Move»</b>. Select opponent's chat.</li>
+            <li><b>Continue:</b> Always tap the <b>LATEST shared link</b> in your chat.</li>
+          </ol>
+        `
+      },
+      es: {
+        send: "📤 Enviar jugada",
+        undo: "↩️ Deshacer",
+        accept: "✅ Aceptar tablas",
+        decline: "❌ Rechazar",
+        draw: "🤝 ¿Tablas?",
+        reset: "🔄 Reiniciar",
+        rulesTitle: "📖 Reglas e instrucciones",
+        white: "Blancas",
+        black: "Negras",
+        turn: "Turno",
+        moved: "¡Jugada hecha! Pulsa \"Enviar jugada\".",
+        check: "(¡Jaque!)",
+        checkmate: "¡Jaque mate! Ganan las ",
+        drawGame: "🤝 ¡Partida en tablas!",
+        drawOffer: "🤝 ¡El oponente ofrece tablas!",
+        drawAccepted: "🤝 ¡Tablas aceptadas!",
+        myMoveText: "♟️ Mi jugada",
+        yourTurnText: "Tu turno:",
+        checkText: "! (¡Jaque ⚡!) Tu turno:",
+        checkmateText: " (¡MATE 🏆!) ¡Fin de la partida!",
+        drawOfferText: "🤝 ¡Propongo tablas! ¿Aceptas?",
+        rulesHtml: `
+          <h4>♟️ 1. Controles y movimientos</h4>
+          <ul>
+            <li><b>Clic y selección:</b> Toca una pieza. Las casillas vacías se resaltan en <b>verde</b>, las enemigas en <b>rojo con espadas ⚔️</b>.</li>
+            <li><b>Arrastrar:</b> Mantén y arrastra la pieza.</li>
+            <li><b>Deshacer:</b> Antes de enviar, pulsa <b>«↩️ Deshacer»</b>.</li>
+          </ul>
+          <h4>🔄 2. Flujo de juego</h4>
+          <ol>
+            <li><b>Mover:</b> Haz tu jugada y pulsa <b>«📤 Enviar jugada»</b>. Elige el chat del rival.</li>
+            <li><b>Continuar:</b> Pulsa siempre el <b>ÚLTIMO enlace recibido</b> en el chat.</li>
+          </ol>
+        `
+      },
+      it: {
+        send: "📤 Invia Mossa",
+        undo: "↩️ Annulla",
+        accept: "✅ Accetta Patta",
+        decline: "❌ Rifiuta",
+        draw: "🤝 Patta?",
+        reset: "🔄 Ricomincia",
+        rulesTitle: "📖 Regole e Istruzioni",
+        white: "Bianchi",
+        black: "Neri",
+        turn: "Turno",
+        moved: "Mossa fatta! Premi \"Invia Mossa\".",
+        check: "(Scacco!)",
+        checkmate: "Scacco matto! Vincono i ",
+        drawGame: "🤝 Partita finita in patta!",
+        drawOffer: "🤝 L'avversario propone la patta!",
+        drawAccepted: "🤝 Patta accettata!",
+        myMoveText: "♟️ La mia mossa",
+        yourTurnText: "Il tuo turno:",
+        checkText: "! (Scacco ⚡) Il tuo turno:",
+        checkmateText: " (SCACCO MATTO 🏆) Partita finita!",
+        drawOfferText: "🤝 Propongo la patta! Accetti?",
+        rulesHtml: `
+          <h4>♟️ 1. Controlli e Mosse</h4>
+          <ul>
+            <li><b>Clicca e Seleziona:</b> Tocca un pezzo. Le caselle vuote si evidenziano in <b>verde</b>, quelle nemiche in <b>rosso con spade ⚔️</b>.</li>
+            <li><b>Trascina:</b> Trascina i pezzi sulla casella desiderata.</li>
+            <li><b>Annulla:</b> Prima di inviare, premi <b>«↩️ Annulla»</b>.</li>
+          </ul>
+          <h4>🔄 2. Svolgimento</h4>
+          <ol>
+            <li><b>Fai la mossa:</b> Muovi e premi <b>«📤 Invia Mossa»</b>. Seleziona la chat dell'avversario.</li>
+            <li><b>Continua:</b> Clicca sempre sull'<b>ULTIMO link inviato</b> nella chat.</li>
+          </ol>
+        `
+      }
+    };
+
+    let currentLang = localStorage.getItem('app_lang') || (tg?.initDataUnsafe?.user?.language_code?.substring(0,2)) || 'ru';
+    if (!translations[currentLang]) currentLang = 'ru';
+
+    function setLanguage(lang) {
+      currentLang = lang;
+      localStorage.setItem('app_lang', lang);
+      
+      $('.lang-btn').removeClass('active');
+      $(`.lang-btn:contains("${lang.toUpperCase()}")`).addClass('active');
+
+      const t = translations[currentLang];
+      $('#sendBtn').text(t.send);
+      $('#undoBtn').text(t.undo);
+      $('#acceptBtn').text(t.accept);
+      $('#declineBtn').text(t.decline);
+      $('#drawBtn').text(t.draw);
+      $('#resetBtn').text(t.reset);
+      $('#rulesHeader').text(t.rulesTitle);
+      $('#rulesContent').html(t.rulesHtml);
+
+      updateStatus();
+    }
+    // ----------------------------------------------------
+
     let board = null;
     let game = new Chess();
     let initialFen = null;
     let selectedSquare = null;
 
-    // Читаем чистый FEN без сторонних мутаций
     const urlParams = new URLSearchParams(window.location.search);
     const rawFen = urlParams.get('fen');
     const isDrawOffer = urlParams.get('drawOffer') === 'true';
@@ -301,21 +514,22 @@
     }
 
     function updateStatus () {
+      const t = translations[currentLang];
       let status = '';
-      let moveColor = game.turn() === 'b' ? 'Чёрные' : 'Белые';
+      let moveColor = game.turn() === 'b' ? t.black : t.white;
 
       if (isDrawOffer) {
-        status = '🤝 Соперник предлагает ничью!';
+        status = t.drawOffer;
         document.getElementById('drawOfferActions').style.display = 'flex';
         document.getElementById('mainOptions').style.display = 'none';
       } else if (game.in_checkmate()) {
-        status = `Мат! Победили ${game.turn() === 'w' ? 'Чёрные' : 'Белые'}.`;
+        status = `${t.checkmate}${game.turn() === 'w' ? t.black : t.white}.`;
       } else if (game.in_draw()) {
-        status = '🤝 Игра завершилась вничью!';
+        status = t.drawGame;
       } else {
         const isMoved = game.fen() !== initialFen;
-        status = isMoved ? 'Ход сделан! Нажмите "Отправить ход".' : `Ход: ${moveColor}`;
-        if (game.in_check()) status += ' (Шах!)';
+        status = isMoved ? t.moved : `${t.turn}: ${moveColor}`;
+        if (game.in_check()) status += ` ${t.check}`;
       }
       document.getElementById('status').innerText = status;
     }
@@ -333,7 +547,6 @@
 
     board = Chessboard('board', config);
     board.position(game.fen(), false);
-    updateStatus();
 
     $('#board').on('click', '*', function (e) {
       const $square = $(this).closest('.square-55d63');
@@ -344,37 +557,39 @@
     });
 
     function shareMove() {
+      const t = translations[currentLang];
       const history = game.history({ verbose: true });
       const lastMove = history.length > 0 ? history[history.length - 1] : null;
       let moveText = '';
-      let statusText = 'Твой черед:';
+      let statusText = t.yourTurnText;
       
       if (lastMove) {
         moveText = ` (${lastMove.from}-${lastMove.to})`;
       }
 
-      // Проверяем шах и мат для текста сообщения
       if (game.in_checkmate()) {
-        statusText = ' (МАТ 🏆) Игра завершена!';
+        statusText = t.checkmateText;
       } else if (game.in_check()) {
-        statusText = '! (Шах ⚡) Твой черед:';
+        statusText = t.checkText;
       }
 
       const encodedFen = encodeURIComponent(game.fen());
       const gameUrl = `https://allegro1582.github.io/telegram-chess/?fen=${encodedFen}`;
-      const text = encodeURIComponent(`♟️ Мой ход${moveText}${statusText}`);
+      const text = encodeURIComponent(`${t.myMoveText}${moveText}${statusText}`);
       sendTelegramLink(gameUrl, text);
     }
 
     function offerDraw() {
+      const t = translations[currentLang];
       const encodedFen = encodeURIComponent(game.fen());
       const gameUrl = `https://allegro1582.github.io/telegram-chess/?fen=${encodedFen}&drawOffer=true`;
-      const text = encodeURIComponent(`🤝 Предлагаю ничью! Принимаешь?`);
+      const text = encodeURIComponent(t.drawOfferText);
       sendTelegramLink(gameUrl, text);
     }
 
     function acceptDraw() {
-      document.getElementById('status').innerText = '🤝 Вы приняли ничью!';
+      const t = translations[currentLang];
+      document.getElementById('status').innerText = t.drawAccepted;
       document.getElementById('drawOfferActions').style.display = 'none';
       document.getElementById('mainOptions').style.display = 'flex';
     }
@@ -396,6 +611,9 @@
     function resetGame() {
       window.location.href = 'https://allegro1582.github.io/telegram-chess/';
     }
+
+    // Запуск интерфейса с языком пользователя
+    setLanguage(currentLang);
   </script>
 </body>
 </html>
