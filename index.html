@@ -38,13 +38,13 @@
       overflow: hidden;
     }
 
-    /* Подсветка клеток */
+    /* Подсветка ходов */
     .highlight-selected {
       background-color: rgba(255, 235, 59, 0.6) !important;
     }
     .highlight-hint {
       background-color: rgba(76, 175, 80, 0.5) !important;
-      cursor: pointer;
+      cursor: pointer !important;
     }
 
     .controls {
@@ -105,11 +105,7 @@
       align-items: center;
     }
     summary::-webkit-details-marker { display: none; }
-    summary::after {
-      content: "►";
-      font-size: 0.8rem;
-      transition: transform 0.2s;
-    }
+    summary::after { content: "►"; font-size: 0.8rem; transition: transform 0.2s; }
     details[open] summary::after { transform: rotate(90deg); }
     .rules-content {
       padding: 0 15px 15px 15px;
@@ -142,8 +138,8 @@
         <h4>♟️ Управление и ходы</h4>
         <p>Вы можете делать ход двумя способами:</p>
         <ul>
-          <li><b>Клик и выбор:</b> Нажмите на фигуру (она подсветится жёлтым, а возможные ходы — зелёным), затем нажмите на нужную клетку.</li>
-          <li><b>Перетаскивание:</b> Зажмите фигуру и перетащите её на нужную клетку.</li>
+          <li><b>Клик и выбор:</b> Нажмите на фигуру (подсветится жёлтым), затем на подсвеченную зелёным клетку назначения.</li>
+          <li><b>Перетаскивание:</b> Зажмите фигуру и перетащите её.</li>
         </ul>
 
         <h4>🔄 Пошаговый процесс:</h4>
@@ -220,7 +216,7 @@
       return true;
     }
 
-    function onSquareClick (square) {
+    function handleSquareClick (square) {
       if (game.game_over()) return;
 
       const piece = game.get(square);
@@ -229,14 +225,14 @@
         (game.turn() === 'b' && piece.color === 'b')
       );
 
-      // Если кликнули на свою фигуру — подсвечиваем ее ходы
+      // 1. Нажатие на свою фигуру
       if (isCurrentTurnPiece) {
         selectedSquare = square;
         showLegalMoves(square);
         return;
       }
 
-      // Если уже была выбрана фигура и кликнули на клетку назначения
+      // 2. Нажатие на клетку назначения (пустую или с чужой фигурой)
       if (selectedSquare) {
         const moved = makeMove(selectedSquare, square);
         if (!moved) {
@@ -252,6 +248,7 @@
           (game.turn() === 'b' && piece.search(/^w/) !== -1)) {
         return false;
       }
+      selectedSquare = source;
       showLegalMoves(source);
     }
 
@@ -303,10 +300,13 @@
     board = Chessboard('board', config);
     updateStatus();
 
-    // Вешаем обработчик кликов по клеткам
-    $('#board').on('click', '.square-55d63', function () {
-      const square = $(this).attr('data-square');
-      onSquareClick(square);
+    // Перехватываем клик по любому элементу внутри контейнера доски
+    $('#board').on('click', '*', function (e) {
+      const $square = $(this).closest('.square-55d63');
+      if ($square.length) {
+        const square = $square.attr('data-square');
+        handleSquareClick(square);
+      }
     });
 
     function shareMove() {
