@@ -1,266 +1,4 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Allegro Chess</title>
-  
- <!-- Open Graph / Telegram Large Preview -->
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="Allegro Chess">
-  <meta property="og:description" content="Free Chess on Telegram">
-  <meta property="og:image" content="https://allegro1582.github.io/telegram-chess/AllegroChess2.jpg">
-  <meta property="og:image:type" content="image/jpeg">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
-
-  <!-- Twitter Card (принудительно включает большой баннер в Telegram) -->
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Allegro Chess">
-  <meta name="twitter:description" content="Free Chess on Telegram">
-  <meta name="twitter:image" content="https://allegro1582.github.io/telegram-chess/AllegroChess2.jpg">
-  
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css">
-  
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background-color: #1e1e24;
-      color: #ffffff;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      min-height: 100vh;
-      margin: 0;
-      padding: 15px;
-    }
-    
-    .lang-selector {
-      display: flex;
-      gap: 4px;
-      margin-bottom: 14px;
-      background: #141418;
-      padding: 4px;
-      border-radius: 10px;
-      border: 1px solid #2d2d38;
-    }
-    .lang-btn {
-      background: transparent;
-      border: none;
-      color: #8e8e99;
-      padding: 6px 12px;
-      border-radius: 7px;
-      font-size: 0.85rem;
-      cursor: pointer;
-      font-weight: 600;
-      transition: all 0.2s ease;
-      letter-spacing: 0.5px;
-    }
-    .lang-btn:hover {
-      color: #ffffff;
-    }
-    .lang-btn.active {
-      background: #2ea6ff;
-      color: #ffffff;
-      box-shadow: 0 2px 8px rgba(46, 166, 255, 0.4);
-    }
-
-    #status {
-      font-size: 1.1rem;
-      margin-bottom: 12px;
-      font-weight: 600;
-      text-align: center;
-      min-height: 2.4em;
-    }
-    
-    .board-container {
-      position: relative;
-      width: 100%;
-      max-width: 360px;
-      margin: 0 auto;
-    }
-
-    #board {
-      width: 100%;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
-      border-radius: 8px;
-      overflow: visible !important;
-      position: relative;
-    }
-
-    .board-overlay {
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(15, 15, 20, 0.85);
-      backdrop-filter: blur(3px);
-      border-radius: 8px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 500;
-      animation: fadeIn 0.4s ease forwards;
-    }
-    .board-overlay h2 {
-      margin: 0;
-      font-size: 2.2rem;
-      color: #ff4d4d;
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
-      text-shadow: 0 4px 12px rgba(255, 77, 77, 0.4);
-    }
-    .board-overlay p {
-      margin: 8px 0 0 0;
-      font-size: 1rem;
-      color: #d0d0d5;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: scale(0.95); }
-      to { opacity: 1; transform: scale(1); }
-    }
-
-    .notation-32298 { color: #a0a0ab !important; font-weight: bold; font-size: 11px; }
-    .alpha-d2270 { bottom: -18px !important; right: 4px !important; }
-    .numeric-fc462 { left: -16px !important; top: 4px !important; }
-
-    .highlight-selected { background-color: rgba(255, 235, 59, 0.5) !important; }
-    .highlight-hint { box-shadow: inset 0 0 0 3px #4caf50 !important; cursor: pointer !important; }
-    .highlight-capture {
-      box-shadow: inset 0 0 0 3px #f44336 !important;
-      cursor: pointer !important;
-      position: relative;
-    }
-    .highlight-capture::after {
-      content: "⚔️";
-      position: absolute;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 28px;
-      pointer-events: none;
-      z-index: 100;
-      opacity: 0.9;
-      text-shadow: 0px 0px 8px rgba(0,0,0,0.9);
-    }
-
-    .controls {
-      margin-top: 25px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      width: 100%;
-      max-width: 360px;
-    }
-    .action-buttons { display: flex; gap: 10px; width: 100%; }
-    button {
-      flex: 1;
-      padding: 12px 8px;
-      border: none;
-      border-radius: 10px;
-      font-size: 0.95rem;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    .btn-send { background-color: #2ea6ff; color: #ffffff; }
-    .btn-undo { background-color: #ff9800; color: #ffffff; }
-    .btn-draw { background-color: #9c27b0; color: #ffffff; }
-    .btn-accept { background-color: #4caf50; color: #ffffff; }
-    .btn-decline { background-color: #f44336; color: #ffffff; }
-    .btn-reset { background-color: #e53935; color: #ffffff; }
-    
-    .rules-container {
-      width: 100%;
-      max-width: 360px;
-      margin-top: 15px;
-      border: 1px solid #33333e;
-      border-radius: 10px;
-      overflow: hidden;
-      background-color: #262630;
-    }
-    details { width: 100%; }
-    summary {
-      padding: 12px 15px;
-      font-weight: bold;
-      cursor: pointer;
-      user-select: none;
-      color: #2ea6ff;
-      outline: none;
-      font-size: 0.95rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    summary::-webkit-details-marker { display: none; }
-    summary::after { content: "►"; font-size: 0.8rem; transition: transform 0.2s; }
-    details[open] summary::after { transform: rotate(90deg); }
-    .rules-content {
-      padding: 0 15px 15px 15px;
-      font-size: 0.85rem;
-      line-height: 1.4;
-      color: #d0d0d5;
-      border-top: 1px solid #33333e;
-    }
-    .rules-content h4 { margin: 12px 0 4px 0; color: #ffffff; }
-    .rules-content ol, .rules-content ul { margin: 4px 0; padding-left: 18px; }
-  </style>
-</head>
-<body>
-
-  <div class="lang-selector">
-    <button class="lang-btn" data-lang="ru" onclick="setLanguage('ru')">RU</button>
-    <button class="lang-btn" data-lang="ua" onclick="setLanguage('ua')">UA</button>
-    <button class="lang-btn" data-lang="en" onclick="setLanguage('en')">EN</button>
-    <button class="lang-btn" data-lang="es" onclick="setLanguage('es')">ES</button>
-    <button class="lang-btn" data-lang="it" onclick="setLanguage('it')">IT</button>
-  </div>
-
-  <div id="status">...</div>
-  
-  <div class="board-container">
-    <div id="board"></div>
-    <div id="boardOverlay" class="board-overlay" style="display: none;">
-      <h2 id="overlayTitle">💀 Поражение!</h2>
-      <p id="overlaySub">Шах и мат</p>
-    </div>
-  </div>
-
-  <div class="controls">
-    <div class="action-buttons" id="moveActions" style="display:none;">
-      <button class="btn-send" id="sendBtn" onclick="shareMove()">📤 Send Move</button>
-      <button class="btn-undo" id="undoBtn" onclick="undoMove()">↩️ Undo</button>
-    </div>
-
-    <div class="action-buttons" id="drawOfferActions" style="display:none;">
-      <button class="btn-accept" id="acceptBtn" onclick="acceptDraw()">✅ Accept</button>
-      <button class="btn-decline" id="declineBtn" onclick="declineDraw()">❌ Decline</button>
-    </div>
-
-    <div class="action-buttons" id="mainOptions">
-      <button class="btn-draw" id="drawBtn" onclick="offerDraw()">🤝 Draw?</button>
-      <button class="btn-reset" id="resetBtn" onclick="resetGame()">🔄 Reset</button>
-    </div>
-  </div>
-
-  <div class="rules-container">
-    <details>
-      <summary id="rulesHeader">📖 Rules & Guide</summary>
-      <div class="rules-content" id="rulesContent">
-      </div>
-    </details>
-  </div>
-
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
-
-  <script>
-    const tg = window.Telegram?.WebApp;
-    if (tg) tg.expand();
-
-    const translations = {
+const translations = {
       ru: {
         send: "📤 Отправить ход",
         undo: "↩️ Переходить",
@@ -268,11 +6,11 @@
         decline: "❌ Отклонить",
         draw: "🤝 Ничья?",
         reset: "🔄 Сброс",
-        rulesTitle: "📖 Полные правила и инструкция",
+        rulesTitle: "📖 Руководство пользователя",
         white: "Белые",
         black: "Чёрные",
         turn: "Ход",
-        moved: "Ход сделан! Нажмите \"Отправить ход\".",
+        moved: "Ход зафиксирован! Нажмите «Отправить ход».",
         check: "(Шах!)",
         checkmate: "Мат! Победили ",
         defeatTitle: "💀 Поражение!",
@@ -286,17 +24,33 @@
         checkmateText: " (МАТ 🏆) Игра завершена!",
         drawOfferText: "🤝 Предлагаю ничью! Принимаешь?",
         rulesHtml: `
-          <h4>♟️ 1. Управление и ходы</h4>
+          <h4>🏁 Начало партии</h4>
+          <p>Вы уже здесь, а значит, вы готовы сыграть партию в Allegro Chess, поздравляем!</p>
+          <p>Сторону вы не выбираете — по умолчанию первым ходит инициатор партии (Белые).</p>
+
+          <h4>⚡ Как управлять доской</h4>
           <ul>
-            <li><b>Клик и выбор:</b> Нажмите на фигуру. Пустые клетки подсвечиваются <b>зелёной кромкой</b>, а вражеские — <b>красной кромкой и мечами ⚔️</b>.</li>
-            <li><b>Перетаскивание:</b> Зажмите фигуру и перетащите её.</li>
-            <li><b>Отмена хода:</b> До нажатия «Отправить ход» можно нажать <b>«↩️ Переходить»</b>.</li>
+            <li><b>Интерактивные подсветки:</b> Нажмите на любую фигуру, чтобы увидеть доступные ходы. Доступные клетки подсвечиваются <b>зелёным контуром</b>, а атака вражеской фигуры — <b>красным и символом ⚔️</b>.</li>
+            <li><b>Два способа хода:</b> Вы можете ходить перетаскивая фигуры (Drag & Drop) или делать ход в два клика (выбор фигуры ➔ выбор клетки).</li>
+            <li><b>Корректировка:</b> Сделали неточный ход? Нажмите <b>«↩️ Переходить»</b>, чтобы отменить действие до отправки сообщения.</li>
           </ul>
-          <h4>🔄 2. Пошаговый процесс</h4>
-          <ol>
-            <li><b>Ход:</b> Сделайте ход и нажмите <b>«📤 Отправить ход»</b>. Выберите чат с соперником.</li>
-            <li><b>Продолжение:</b> Нажимайте на <b>ПОСЛЕДНЮЮ присланную ссылку</b> из вашего чата.</li>
-          </ol>
+
+          <h4>⚔️ Как играть с другом</h4>
+          <ul>
+            <li><b>Сделайте первый ход:</b> Переместите фигуру и нажмите <b>«📤 Отправить ход»</b>. В выпадающем меню Telegram выберите чат с вашим будущим соперником.</li>
+            <li><b>Очередь ходов:</b> Каждое новое сообщение содержит актуальное состояние партии. Всегда открывайте <b>самую последнюю ссылку</b> в чате.</li>
+          </ul>
+
+          <h4>🏆 Завершение партии</h4>
+          <ul>
+            <li><b>Шах и Мат:</b> Приложение автоматически отслеживает шахи, маты и ничейные ситуации. Нажмите <b>«🤝 Ничья?»</b> для мирного соглашения.</li>
+          </ul>
+
+          <h4>🌐 Параллельные игры</h4>
+          <p>Благодаря тому, что вы бросаете вызов в отдельном личном чате, вы можете играть с любым количеством игроков! Просто начните новую партию, написав боту, или прямо из любой текущей партии! Делайте первый ход, выбирайте нового игрока и ждите подтверждения в вашей с ним переписке. А что же текущая партия? Просто откройте её заново в вашей переписке по последней ссылке, и вы вернётесь туда, где закончили.</p>
+
+          <p style="text-align: center; margin-top: 15px; font-weight: bold; color: #2ea6ff;">Приятной игры!</p>
+          <p style="text-align: center; font-size: 0.75rem; color: #70707a;">© Copyright Allegro</p>
         `
       },
       ua: {
@@ -306,11 +60,11 @@
         decline: "❌ Відхилити",
         draw: "🤝 Нічия?",
         reset: "🔄 Скидання",
-        rulesTitle: "📖 Повні правила та інструкція",
+        rulesTitle: "📖 Інструкція користувача",
         white: "Білі",
         black: "Чорні",
         turn: "Хід",
-        moved: "Хід зроблено! Натисніть \"Надіслати хід\".",
+        moved: "Хід зроблено! Натисніть «Надіслати хід».",
         check: "(Шах!)",
         checkmate: "Мат! Перемогли ",
         defeatTitle: "💀 Поразка!",
@@ -324,17 +78,33 @@
         checkmateText: " (МАТ 🏆) Гра завершена!",
         drawOfferText: "🤝 Пропоную нічию! Приймаєш?",
         rulesHtml: `
-          <h4>♟️ 1. Керування та ходи</h4>
+          <h4>🏁 Початок партії</h4>
+          <p>Ви вже тут, а отже, готові зіграти партію в Allegro Chess, вітаємо!</p>
+          <p>Сторону ви не обираєте — за замовчуванням першим ходить ініціатор партії (Білі).</p>
+
+          <h4>⚡ Як керувати дошкою</h4>
           <ul>
-            <li><b>Клік та вибір:</b> Натисніть на фігуру. Порожні клітинки підсвічуються <b>зеленим</b>, а ворожі — <b>червоним та мечами ⚔️</b>.</li>
-            <li><b>Перетягування:</b> Затисніть фігуру та перетягніть її.</li>
-            <li><b>Скасування ходу:</b> До натискання «Надіслати хід» можна натиснути <b>«↩️ Переходити»</b>.</li>
+            <li><b>Інтерактивне підсвічування:</b> Натисніть на будь-яку фігуру, щоб побачити можливі ходи. Доступні клітинки виділяються <b>зеленим контуром</b>, а атака фігури суперника — <b>червоним та символом ⚔️</b>.</li>
+            <li><b>Два способи ходу:</b> Ви можете перетягувати фігури (Drag & Drop) або робити хід у два кліки (вибір фігури ➔ вибір клітинки).</li>
+            <li><b>Коригування:</b> Зробили помилковий хід? Натисніть <b>«↩️ Переходити»</b>, щоб скасувати дію до надсилання повідомлення.</li>
           </ul>
-          <h4>🔄 2. Покроковий процес</h4>
-          <ol>
-            <li><b>Хід:</b> Зробіть хід та натисніть <b>«📤 Надіслати хід»</b>. Виберіть чат із суперником.</li>
-            <li><b>Продовження:</b> Завжди натискайте на <b>ОСТАННЄ надіслане посилання</b>.</li>
-          </ol>
+
+          <h4>⚔️ Як грати з другом</h4>
+          <ul>
+            <li><b>Зробіть перший хід:</b> Перемістіть фігуру та натисніть <b>«📤 Надіслати хід»</b>. У меню Telegram виберіть чат із вашим майбутнім суперником.</li>
+            <li><b>Черговість ходів:</b> Кожне нове повідомлення містить актуальний стан партії. Завжди відкривайте <b>найновіше посилання</b> у чаті.</li>
+          </ul>
+
+          <h4>🏆 Завершення партії</h4>
+          <ul>
+            <li><b>Шах і Мат:</b> Застосунок автоматично відстежує шахи, мати та нічийні ситуації. Натисніть <b>«🤝 Нічия?»</b> для мирного узгодження.</li>
+          </ul>
+
+          <h4>🌐 Паралельні ігри</h4>
+          <p>Завдяки тому, що ви кидаєте виклик в окремому чаті, ви можете грати з будь-якою кількістю гравців! Просто почніть нову партію через бота або прямо з поточної гри. Зробіть перший хід, виберіть нового гравця та чекайте на відповідь. А що ж поточна партія? Просто відкрийте її знову у вашому чаті за останнім посиланням, і ви повернетеся туди, де зупинилися.</p>
+
+          <p style="text-align: center; margin-top: 15px; font-weight: bold; color: #2ea6ff;">Приємної гри!</p>
+          <p style="text-align: center; font-size: 0.75rem; color: #70707a;">© Copyright Allegro</p>
         `
       },
       en: {
@@ -344,11 +114,11 @@
         decline: "❌ Decline",
         draw: "🤝 Offer Draw",
         reset: "🔄 Reset",
-        rulesTitle: "📖 Rules & Instructions",
+        rulesTitle: "📖 User Guide",
         white: "White",
         black: "Black",
         turn: "Turn",
-        moved: "Move done! Press \"Send Move\".",
+        moved: "Move saved! Tap \"Send Move\".",
         check: "(Check!)",
         checkmate: "Checkmate! Winner: ",
         defeatTitle: "💀 Defeat!",
@@ -362,17 +132,33 @@
         checkmateText: " (CHECKMATE 🏆) Game over!",
         drawOfferText: "🤝 Offering a draw! Accept?",
         rulesHtml: `
-          <h4>♟️ 1. Controls & Moves</h4>
+          <h4>🏁 Game Start</h4>
+          <p>You're here, which means you're ready to play a game of Allegro Chess. Welcome!</p>
+          <p>You don't pick sides — the game initiator always moves first as White.</p>
+
+          <h4>⚡ Board Controls</h4>
           <ul>
-            <li><b>Click & Select:</b> Tap a piece. Empty squares highlight in <b>green</b>, enemy squares in <b>red with swords ⚔️</b>.</li>
-            <li><b>Drag & Drop:</b> Drag pieces to target squares.</li>
-            <li><b>Undo:</b> Before sending, press <b>«↩️ Undo Move»</b> to retry.</li>
+            <li><b>Smart Highlights:</b> Tap any piece to see valid moves. Available squares are outlined in <b>green</b>, enemy targets in <b>red with ⚔️</b>.</li>
+            <li><b>Flexible Input:</b> Drag & drop pieces across the board or use standard tap-to-select controls.</li>
+            <li><b>Move Correction:</b> Made a mistake? Tap <b>«↩️ Undo Move»</b> to reset before sharing.</li>
           </ul>
-          <h4>🔄 2. Game Flow</h4>
-          <ol>
-            <li><b>Make a Move:</b> Move and press <b>«📤 Send Move»</b>. Select opponent's chat.</li>
-            <li><b>Continue:</b> Always tap the <b>LATEST shared link</b> in your chat.</li>
-          </ol>
+
+          <h4>⚔️ Playing with Friends</h4>
+          <ul>
+            <li><b>Make First Move:</b> Move a piece and press <b>«📤 Send Move»</b>. Select your opponent's chat in Telegram.</li>
+            <li><b>Turn Continuity:</b> Each shared link holds the live state of the match. Always open the <b>latest link</b> in your chat.</li>
+          </ul>
+
+          <h4>🏆 Game Resolution</h4>
+          <ul>
+            <li><b>Checks & Mates:</b> Checks, checkmates, and draws are tracked automatically. Use <b>«🤝 Offer Draw»</b> to propose a tie.</li>
+          </ul>
+
+          <h4>🌐 Parallel Games</h4>
+          <p>Since challenges are issued in direct chats, you can play with any number of opponents simultaneously! Simply start a new match via the bot or right from an active game. Make your move, pick a new player, and wait for their reply. What about your current match? Just re-open the latest link in that chat to pick up right where you left off.</p>
+
+          <p style="text-align: center; margin-top: 15px; font-weight: bold; color: #2ea6ff;">Enjoy the game!</p>
+          <p style="text-align: center; font-size: 0.75rem; color: #70707a;">© Copyright Allegro</p>
         `
       },
       es: {
@@ -382,11 +168,11 @@
         decline: "❌ Rechazar",
         draw: "🤝 ¿Tablas?",
         reset: "🔄 Reiniciar",
-        rulesTitle: "📖 Reglas e instrucciones",
+        rulesTitle: "📖 Guía de usuario",
         white: "Blancas",
         black: "Negras",
         turn: "Turno",
-        moved: "¡Jugada hecha! Pulsa \"Enviar jugada\".",
+        moved: "¡Jugada guardada! Pulsa \"Enviar jugada\".",
         check: "(¡Jaque!)",
         checkmate: "¡Jaque mate! Ganan las ",
         defeatTitle: "💀 ¡Derrota!",
@@ -400,17 +186,33 @@
         checkmateText: " (¡MATE 🏆!) ¡Fin de la partida!",
         drawOfferText: "🤝 ¡Propongo tablas! ¿Aceptas?",
         rulesHtml: `
-          <h4>♟️ 1. Controles y movimientos</h4>
+          <h4>🏁 Inicio de partida</h4>
+          <p>¡Ya estás aquí! Estás listo para jugar una partida de Allegro Chess. ¡Bienvenido!</p>
+          <p>No eliges bando: el iniciador de la partida juega siempre con Blancas.</p>
+
+          <h4>⚡ Control del tablero</h4>
           <ul>
-            <li><b>Clic y selección:</b> Toca una pieza. Las casillas vacías se resaltan en <b>verde</b>, las enemigas en <b>rojo con espadas ⚔️</b>.</li>
-            <li><b>Arrastrar:</b> Mantén y arrastra la pieza.</li>
-            <li><b>Deshacer:</b> Antes de enviar, pulsa <b>«↩️ Deshacer»</b>.</li>
+            <li><b>Resaltado inteligente:</b> Toca cualquier pieza para ver los movimientos válidos. Las casillas libres se destacan en <b>verde</b> y las capturas en <b>rojo con ⚔️</b>.</li>
+            <li><b>Modos de juego:</b> Arrastra piezas (Drag & Drop) o selecciona con dos toques simples.</li>
+            <li><b>Corrección:</b> ¿Cometiste un error? Pulsa <b>«↩️ Deshacer»</b> para rectificar antes de enviar.</li>
           </ul>
-          <h4>🔄 2. Flujo de juego</h4>
-          <ol>
-            <li><b>Mover:</b> Haz tu jugada y pulsa <b>«📤 Enviar jugada»</b>. Elige el chat del rival.</li>
-            <li><b>Continuar:</b> Pulsa siempre el <b>ÚLTIMO enlace recibido</b> en el chat.</li>
-          </ol>
+
+          <h4>⚔️ Jugar con un amigo</h4>
+          <ul>
+            <li><b>Primer movimiento:</b> Realiza tu jugada y pulsa <b>«📤 Enviar jugada»</b>. Selecciona el chat del rival en Telegram.</li>
+            <li><b>Continuidad:</b> Cada enlace guarda el estado actual del juego. Abre siempre el <b>último enlace recibido</b>.</li>
+          </ul>
+
+          <h4>🏆 Finalización</h4>
+          <ul>
+            <li><b>Control de estados:</b> Los jaques, mates y tablas se detectan automáticamente. Usa <b>«🤝 ¿Tablas?»</b> para proponer empate.</li>
+          </ul>
+
+          <h4>🌐 Partidas paralelas</h4>
+          <p>¡Puedes jugar con cualquier número de personas al mismo tiempo! Inicia una nueva partida con el bot o desde el juego actual. Haz tu jugada, elige un nuevo rival y espera su turno. ¿Y tu partida anterior? Solo abre el último enlace en ese chat para volver exactamente donde lo dejaste.</p>
+
+          <p style="text-align: center; margin-top: 15px; font-weight: bold; color: #2ea6ff;">¡Disfruta del juego!</p>
+          <p style="text-align: center; font-size: 0.75rem; color: #70707a;">© Copyright Allegro</p>
         `
       },
       it: {
@@ -420,11 +222,11 @@
         decline: "❌ Rifiuta",
         draw: "🤝 Patta?",
         reset: "🔄 Ricomincia",
-        rulesTitle: "📖 Regole e Istruzioni",
+        rulesTitle: "📖 Guida Utente",
         white: "Bianchi",
         black: "Neri",
         turn: "Turno",
-        moved: "Mossa fatta! Premi \"Invia Mossa\".",
+        moved: "Mossa salvata! Premi \"Invia Mossa\".",
         check: "(Scacco!)",
         checkmate: "Scacco matto! Vincono i ",
         defeatTitle: "💀 Sconfitta!",
@@ -438,258 +240,33 @@
         checkmateText: " (SCACCO MATTO 🏆) Partita finita!",
         drawOfferText: "🤝 Propongo la patta! Accetti?",
         rulesHtml: `
-          <h4>♟️ 1. Controlli e Mosse</h4>
+          <h4>🏁 Inizio Partita</h4>
+          <p>Sei qui, il che significa che sei pronto per una partita a Allegro Chess. Benvenuto!</p>
+          <p>Non scegli il colore: l'iniziatore della partita gioca sempre con i Bianchi.</p>
+
+          <h4>⚡ Controllo Scacchiera</h4>
           <ul>
-            <li><b>Clicca e Seleziona:</b> Tocca un pezzo. Le caselle vuote si evidenziano in <b>verde</b>, quelle nemiche in <b>rosso con spade ⚔️</b>.</li>
-            <li><b>Trascina:</b> Trascina i pezzi sulla casella desiderata.</li>
-            <li><b>Annulla:</b> Prima di inviare, premi <b>«↩️ Annulla»</b>.</li>
+            <li><b>Evidenziazione Intelligente:</b> Tocca un pezzo per vedere le mosse legali. Le caselle libere sono evidenziate in <b>verde</b>, le catture in <b>rosso con ⚔️</b>.</li>
+            <li><b>Interazione:</b> Trascina i pezzi o usa il doppio tocco per muovere.</li>
+            <li><b>Correzione:</b> Errore di valutazione? Premi <b>«↩️ Annulla»</b> prima di inviare.</li>
           </ul>
-          <h4>🔄 2. Svolgimento</h4>
-          <ol>
-            <li><b>Fai la mossa:</b> Muovi e premi <b>«📤 Invia Mossa»</b>. Seleziona la chat dell'avversario.</li>
-            <li><b>Continua:</b> Clicca sempre sull'<b>ULTIMO link inviato</b> nella chat.</li>
-          </ol>
+
+          <h4>⚔️ Giocare con un Amico</h4>
+          <ul>
+            <li><b>Prima Mossa:</b> Muovi e premi <b>«📤 Invia Mossa»</b>. Seleziona la chat dell'avversario su Telegram.</li>
+            <li><b>Continuità:</b> Ogni link salva lo stato in tempo reale. Apri sempre <b>l'ultimo link ricevuto</b>.</li>
+          </ul>
+
+          <h4>🏆 Conclusione</h4>
+          <ul>
+            <li><b>Rilevamento Automatico:</b> Scacchi, scacchi matti e patte sono gestiti dal sistema. Usa <b>«🤝 Patta?»</b> per proporre l'accordo.</li>
+          </ul>
+
+          <h4>🌐 Partite Parallele</h4>
+          <p>Puoi giocare con qualsiasi numero di giocatori contemporaneamente! Avvia una nuova partita tramite il bot o direttamente dal gioco in corso. Fai la tua mossa, scegli un nuovo avversario e attendi la risposta. E la tua partita precedente? Apri l'ultimo link in quella chat per riprendere da dove avevi lasciato.</p>
+
+          <p style="text-align: center; margin-top: 15px; font-weight: bold; color: #2ea6ff;">Buona partita!</p>
+          <p style="text-align: center; font-size: 0.75rem; color: #70707a;">© Copyright Allegro</p>
         `
       }
     };
-
-    let currentLang = localStorage.getItem('app_lang') || (tg?.initDataUnsafe?.user?.language_code?.substring(0,2)) || 'ru';
-    if (!translations[currentLang]) currentLang = 'ru';
-
-    function setLanguage(lang) {
-      currentLang = lang;
-      localStorage.setItem('app_lang', lang);
-      
-      $('.lang-btn').removeClass('active');
-      $(`.lang-btn[data-lang="${lang}"]`).addClass('active');
-
-      const t = translations[currentLang];
-      $('#sendBtn').text(t.send);
-      $('#undoBtn').text(t.undo);
-      $('#acceptBtn').text(t.accept);
-      $('#declineBtn').text(t.decline);
-      $('#drawBtn').text(t.draw);
-      $('#resetBtn').text(t.reset);
-      $('#rulesHeader').text(t.rulesTitle);
-      $('#rulesContent').html(t.rulesHtml);
-      $('#overlayTitle').text(t.defeatTitle);
-      $('#overlaySub').text(t.checkmateSub);
-
-      updateStatus();
-    }
-
-    let board = null;
-    let game = new Chess();
-    let initialFen = null;
-    let selectedSquare = null;
-
-    const urlParams = new URLSearchParams(window.location.search);
-    const rawFen = urlParams.get('fen');
-    const isDrawOffer = urlParams.get('drawOffer') === 'true';
-
-    if (rawFen) {
-      game.load(decodeURIComponent(rawFen));
-    }
-    initialFen = game.fen();
-
-    function removeHighlights () {
-      $('#board .square-55d63').removeClass('highlight-selected highlight-hint highlight-capture');
-    }
-
-    function showLegalMoves (square) {
-      removeHighlights();
-      const moves = game.moves({ square: square, verbose: true });
-      if (moves.length === 0) return;
-
-      $('#board .square-' + square).addClass('highlight-selected');
-      for (let i = 0; i < moves.length; i++) {
-        const move = moves[i];
-        if (move.flags.includes('c') || move.flags.includes('e')) {
-          $('#board .square-' + move.to).addClass('highlight-capture');
-        } else {
-          $('#board .square-' + move.to).addClass('highlight-hint');
-        }
-      }
-    }
-
-    function makeMove (source, target) {
-      if (game.fen() !== initialFen) {
-        game.undo();
-      }
-
-      const move = game.move({
-        from: source,
-        to: target,
-        promotion: 'q'
-      });
-
-      if (move === null) return false;
-
-      removeHighlights();
-      board.position(game.fen());
-      updateStatus();
-      document.getElementById('moveActions').style.display = 'flex';
-      selectedSquare = null;
-      return true;
-    }
-
-    function handleSquareClick (square) {
-      if (game.game_over() || isDrawOffer) return;
-
-      const piece = game.get(square);
-      const isCurrentTurnPiece = piece && (
-        (game.turn() === 'w' && piece.color === 'w') ||
-        (game.turn() === 'b' && piece.color === 'b')
-      );
-
-      if (isCurrentTurnPiece) {
-        selectedSquare = square;
-        showLegalMoves(square);
-        return;
-      }
-
-      if (selectedSquare) {
-        const moved = makeMove(selectedSquare, square);
-        if (!moved) {
-          removeHighlights();
-          selectedSquare = null;
-        }
-      }
-    }
-
-    function onDragStart (source, piece) {
-      if (game.game_over() || isDrawOffer) return false;
-      if ((game.turn() === 'w' && piece.search(/^b/) !== -1) ||
-          (game.turn() === 'b' && piece.search(/^w/) !== -1)) {
-        return false;
-      }
-      selectedSquare = source;
-      showLegalMoves(source);
-    }
-
-    function onDrop (source, target) {
-      const moved = makeMove(source, target);
-      if (!moved) return 'snapback';
-    }
-
-    function onSnapEnd () {
-      removeHighlights();
-    }
-
-    function undoMove() {
-      game.load(initialFen);
-      board.position(initialFen);
-      removeHighlights();
-      selectedSquare = null;
-      document.getElementById('moveActions').style.display = 'none';
-      document.getElementById('boardOverlay').style.display = 'none';
-      updateStatus();
-    }
-
-    function updateStatus () {
-      const t = translations[currentLang];
-      let status = '';
-      let moveColor = game.turn() === 'b' ? t.black : t.white;
-
-      if (isDrawOffer) {
-        status = t.drawOffer;
-        document.getElementById('drawOfferActions').style.display = 'flex';
-        document.getElementById('mainOptions').style.display = 'none';
-        document.getElementById('boardOverlay').style.display = 'none';
-      } else if (game.in_checkmate()) {
-        status = `${t.checkmate}${game.turn() === 'w' ? t.black : t.white}.`;
-        document.getElementById('boardOverlay').style.display = 'flex';
-      } else if (game.in_draw()) {
-        status = t.drawGame;
-        document.getElementById('boardOverlay').style.display = 'none';
-      } else {
-        document.getElementById('boardOverlay').style.display = 'none';
-        const isMoved = game.fen() !== initialFen;
-        status = isMoved ? t.moved : `${t.turn}: ${moveColor}`;
-        if (game.in_check()) status += ` ${t.check}`;
-      }
-      document.getElementById('status').innerText = status;
-    }
-
-    const currentTurn = game.turn();
-    const config = {
-      draggable: !isDrawOffer,
-      position: game.fen(),
-      orientation: currentTurn === 'w' ? 'white' : 'black',
-      onDragStart: onDragStart,
-      onDrop: onDrop,
-      onSnapEnd: onSnapEnd,
-      pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
-    };
-
-    board = Chessboard('board', config);
-    board.position(game.fen(), false);
-
-    $('#board').on('click', '*', function (e) {
-      const $square = $(this).closest('.square-55d63');
-      if ($square.length) {
-        const square = $square.attr('data-square');
-        handleSquareClick(square);
-      }
-    });
-
-    function shareMove() {
-      const t = translations[currentLang];
-      const history = game.history({ verbose: true });
-      const lastMove = history.length > 0 ? history[history.length - 1] : null;
-      let moveText = '';
-      let statusText = t.yourTurnText;
-      
-      if (lastMove) {
-        moveText = ` (${lastMove.from}-${lastMove.to})`;
-      }
-
-      if (game.in_checkmate()) {
-        statusText = t.checkmateText;
-      } else if (game.in_check()) {
-        statusText = t.checkText;
-      }
-
-      const encodedFen = encodeURIComponent(game.fen());
-      const gameUrl = `https://allegro1582.github.io/telegram-chess/?fen=${encodedFen}`;
-      const text = encodeURIComponent(`${t.myMoveText}${moveText}${statusText}`);
-      sendTelegramLink(gameUrl, text);
-    }
-
-    function offerDraw() {
-      const t = translations[currentLang];
-      const encodedFen = encodeURIComponent(game.fen());
-      const gameUrl = `https://allegro1582.github.io/telegram-chess/?fen=${encodedFen}&drawOffer=true`;
-      const text = encodeURIComponent(t.drawOfferText);
-      sendTelegramLink(gameUrl, text);
-    }
-
-    function acceptDraw() {
-      const t = translations[currentLang];
-      document.getElementById('status').innerText = t.drawAccepted;
-      document.getElementById('drawOfferActions').style.display = 'none';
-      document.getElementById('mainOptions').style.display = 'flex';
-    }
-
-    function declineDraw() {
-      const encodedFen = encodeURIComponent(game.fen());
-      window.location.href = `https://allegro1582.github.io/telegram-chess/?fen=${encodedFen}`;
-    }
-
-    function sendTelegramLink(gameUrl, text) {
-      const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(gameUrl)}&text=${text}`;
-      if (tg && tg.openTelegramLink) {
-        tg.openTelegramLink(shareUrl);
-      } else {
-        window.open(shareUrl, '_blank');
-      }
-    }
-
-    function resetGame() {
-      window.location.href = 'https://allegro1582.github.io/telegram-chess/';
-    }
-
-    setLanguage(currentLang);
-  </script>
-</body>
-</html>
