@@ -84,12 +84,67 @@
       margin: 0 auto;
     }
 
-    #board {
-      width: 100%;
+    /* Шахматная доска с профессиональными рамками-координатами со всех сторон */
+    .chess-frame {
+      display: grid;
+      grid-template-columns: 20px 1fr 20px;
+      grid-template-rows: 20px 1fr 20px;
+      background: #2b2b36;
+      padding: 4px;
+      border-radius: 10px;
       box-shadow: 0 8px 24px rgba(0,0,0,0.6);
-      border-radius: 8px;
+    }
+
+    .coord-col {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      font-size: 0.75rem;
+      font-weight: bold;
+      color: #8e8e99;
+      user-select: none;
+    }
+    .coord-row {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      align-items: center;
+      font-size: 0.75rem;
+      font-weight: bold;
+      color: #8e8e99;
+      user-select: none;
+    }
+
+    #board {
+      grid-column: 2;
+      grid-row: 2;
+      width: 100%;
+      border-radius: 4px;
       overflow: visible !important;
       position: relative;
+    }
+
+    /* Отключаем стандартную встроенную кривую нотацию chessboard.js, так как у нас есть свои крутые рамки */
+    .notation-32298 { display: none !important; }
+
+    /* Красивая подсветка последнего хода */
+    .highlight-last-from { background-color: rgba(255, 152, 0, 0.35) !important; }
+    .highlight-last-to { background-color: rgba(255, 152, 0, 0.6) !important; position: relative; }
+
+    /* Красивая текстовая метка последнего хода на клетке */
+    .last-move-badge {
+      position: absolute;
+      bottom: 2px;
+      right: 2px;
+      background: rgba(0, 0, 0, 0.75);
+      color: #ff9800;
+      font-size: 9px;
+      font-weight: bold;
+      padding: 1px 3px;
+      border-radius: 3px;
+      pointer-events: none;
+      z-index: 60;
+      border: 1px solid rgba(255, 152, 0, 0.5);
     }
 
     .board-overlay {
@@ -129,10 +184,6 @@
       from { opacity: 0; transform: scale(0.95); }
       to { opacity: 1; transform: scale(1); }
     }
-
-    .notation-32298 { color: #a0a0ab !important; font-weight: bold; font-size: 11px; }
-    .alpha-d2270 { bottom: -18px !important; right: 4px !important; }
-    .numeric-fc462 { left: -16px !important; top: 4px !important; }
 
     .highlight-selected { background-color: rgba(255, 235, 59, 0.5) !important; }
     .highlight-hint { box-shadow: inset 0 0 0 3px #4caf50 !important; cursor: pointer !important; }
@@ -228,7 +279,27 @@
   <div id="status">...</div>
   
   <div class="board-container">
-    <div id="board"></div>
+    <div class="chess-frame">
+      <!-- Верхний ряд координат -->
+      <div></div>
+      <div class="coord-col" id="topCoords"></div>
+      <div></div>
+
+      <!-- Левый ряд координат -->
+      <div class="coord-row" id="leftCoords"></div>
+      
+      <!-- Сама доска -->
+      <div id="board"></div>
+
+      <!-- Правый ряд координат -->
+      <div class="coord-row" id="rightCoords"></div>
+
+      <!-- Нижний ряд координат -->
+      <div></div>
+      <div class="coord-col" id="bottomCoords"></div>
+      <div></div>
+    </div>
+
     <div id="boardOverlay" class="board-overlay defeat" style="display: none;">
       <h2 id="overlayTitle">💀 Поражение!</h2>
       <p id="overlaySub">Шах и мат</p>
@@ -304,7 +375,7 @@
 
           <h4>⚡ Как управлять доской</h4>
           <ul>
-            <li><b>Интерактивные подсветки:</b> Нажмите на любую фигуру, чтобы увидеть доступные ходы. Доступные клетки подсвечиваются <b>зелёным контуром</b>, а атака вражеской фигуры — <b>красным и символом ⚔️</b>.</li>
+            <li><b>Интерактивные подсветки:</b> Нажмите на любую фигуру, чтобы увидеть доступные ходы. Доступные клетки подсвечиваются <b>зелёным контуром</b>, а атака вражеской фигуры — <b>красным и символом ⚔️</b>. Последний ход подсвечивается оранжевым с отметкой на поле.</li>
             <li><b>Два способа хода:</b> Вы можете ходить перетаскивая фигуры (Drag & Drop) или делать ход в два клика (выбор фигуры ➔ выбор клетки).</li>
             <li><b>Корректировка:</b> Сделали неточный ход? Нажмите <b>«↩️ Переходить»</b>, чтобы отменить действие до отправки сообщения.</li>
           </ul>
@@ -321,7 +392,7 @@
           </ul>
 
           <h4>🌐 Параллельные игры</h4>
-          <p>Благодаря тому, что вы бросаете вызов в отдельном личном чате, вы можете играть с любым количеством игроков! Просто начните новую партию, написав боту, или прямо из любой текущей партии! Делайте первый ход, выбирайте нового игрока и ждите подтверждения в вашей с ним переписке. А что же текущая партия? Просто откройте её заново в вашей переписке по последней ссылке, и вы вернётесь туда, где закончили.</p>
+          <p>Благодаря тому, что вы бросаете вызов в отдельном личном чате, вы можете играть с любым количеством игроков! Просто начните новую партию, написав боту, или прямо из любой текущей партии! Делайте первый ход, выбирайте нового игрока и ждите подтверждения в вашей с ним переписке. А что же текущая партия? Просто откройте её заново в вашей переписке по последней ссылке, и вы вернетесь туда, где закончили.</p>
 
           <p style="text-align: center; margin-top: 15px; font-weight: bold; color: #2ea6ff;">Приятной игры!</p>
           <p style="text-align: center; font-size: 0.75rem; color: #70707a;">© 2026 Allegro Chess. All rights reserved.</p>
@@ -361,7 +432,7 @@
 
           <h4>⚡ Як керувати дошкою</h4>
           <ul>
-            <li><b>Інтерактивне підсвічування:</b> Натисніть на будь-яку фігуру, щоб побачити можливі ходи. Доступні клітинки виділяються <b>зеленим контуром</b>, а атака фігури суперника — <b>червоним та символом ⚔️</b>.</li>
+            <li><b>Інтерактивне підсвічування:</b> Натисніть на будь-яку фігуру, щоб побачити можливі ходи. Останній хід підсвічується помаранчевим з міткою на полі.</li>
             <li><b>Два способи ходу:</b> Ви можете перетягувати фігури (Drag & Drop) або робити хід у два кліки (вибір фігури ➔ вибір клітинки).</li>
             <li><b>Коригування:</b> Зробили помилковий хід? Натисніть <b>«↩️ Переходити»</b>, щоб скасувати дію до надсилання повідомлення.</li>
           </ul>
@@ -418,7 +489,7 @@
 
           <h4>⚡ Board Controls</h4>
           <ul>
-            <li><b>Smart Highlights:</b> Tap any piece to see valid moves. Available squares are outlined in <b>green</b>, enemy targets in <b>red with ⚔️</b>.</li>
+            <li><b>Smart Highlights:</b> Tap any piece to see valid moves. Last move is highlighted in orange with a notation badge.</li>
             <li><b>Flexible Input:</b> Drag & drop pieces across the board or use standard tap-to-select controls.</li>
             <li><b>Move Correction:</b> Made a mistake? Tap <b>«↩️ Undo Move»</b> to reset before sharing.</li>
           </ul>
@@ -475,7 +546,7 @@
 
           <h4>⚡ Control del tablero</h4>
           <ul>
-            <li><b>Resaltado inteligente:</b> Toca cualquier pieza para ver los movimientos válidos. Las casillas libres se destacan en <b>verde</b> y las capturas en <b>rojo con ⚔️</b>.</li>
+            <li><b>Resaltado inteligente:</b> Toca cualquier pieza para ver los movimientos válidos. El último movimiento se destaca en naranja.</li>
             <li><b>Modos de juego:</b> Arrastra piezas (Drag & Drop) o selecciona con dos toques simples.</li>
             <li><b>Corrección:</b> ¿Cometiste un error? Pulsa <b>«↩️ Deshacer»</b> para rectificar antes de enviar.</li>
           </ul>
@@ -492,7 +563,7 @@
           </ul>
 
           <h4>🌐 Partidas paralelas</h4>
-          <p>¡Puedes jugar con cualquier número de personas al mismo tiempo! Inicia una nueva partida con el bot o desde el juego actual. Haz tu jugada, elige un nuevo rival y espera su turno. ¿Y tu partida anterior? Solo abre el último enlace en ese chat para volver exactamente donde lo dejaste.</p>
+          <p>¡Puedes jugar con cualquier número de personas al mismo tiempo! Inicia una nueva partida con el bot или desde el juego actual. Haz tu jugada, elige un nuevo rival y espera su turno. ¿Y tu partida anterior? Solo abre el último enlace en ese chat para volver exactamente donde lo dejaste.</p>
 
           <p style="text-align: center; margin-top: 15px; font-weight: bold; color: #2ea6ff;">¡Disfruta del juego!</p>
           <p style="text-align: center; font-size: 0.75rem; color: #70707a;">© 2026 Allegro Chess. All rights reserved.</p>
@@ -532,7 +603,7 @@
 
           <h4>⚡ Controllo Scacchiera</h4>
           <ul>
-            <li><b>Evidenziazione Intelligente:</b> Tocca un pezzo per vedere le mosse legali. Le caselle libere sono evidenziate in <b>verde</b>, le catture in <b>rosso con ⚔️</b>.</li>
+            <li><b>Evidenziazione Intelligente:</b> Tocca un pezzo per vedere le mosse legali. L'ultima mossa è evidenziata in arancione.</li>
             <li><b>Interazione:</b> Trascina i pezzi o usa il doppio tocco per muovere.</li>
             <li><b>Correzione:</b> Errore di valutazione? Premi <b>«↩️ Annulla»</b> prima di inviare.</li>
           </ul>
@@ -548,7 +619,7 @@
             <li><b>Rilevamento Automatico:</b> Scacchi, scacchi matti e patte sono gestiti dal sistema. Usa <b>«🤝 Patta?»</b> per proporre l'accordo.</li>
           </ul>
 
-          <h4>🌐 Partite Parallele</h4>
+          <h4>🌐 Partite Parparallel</h4>
           <p>Puoi giocare con qualsiasi numero di giocatori contemporaneamente! Avvia una nuova partita tramite il bot o direttamente dal gioco in corso. Fai la tua mossa, scegli un nuovo avversario e attendi la risposta. E la tua partita precedente? Apri l'ultimo link in quella chat per riprendere da dove avevi lasciato.</p>
 
           <p style="text-align: center; margin-top: 15px; font-weight: bold; color: #2ea6ff;">Buona partita!</p>
@@ -601,6 +672,7 @@
             
             game.move({ from: from, to: to, promotion: promotion });
             board.position(game.fen());
+            highlightLastMove();
             updateStatus();
           }
         }
@@ -622,8 +694,40 @@
     }
     initialFen = game.fen();
 
+    // Функция отрисовки правильных рамок координат в зависимости от ориентации доски
+    function updateCoordinates(orientation) {
+      const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+      const ranks = ['8', '7', '6', '5', '4', '3', '2', '1'];
+
+      const topFiles = orientation === 'white' ? files : [...files].reverse();
+      const leftRanks = orientation === 'white' ? ranks : [...ranks].reverse();
+
+      $('#topCoords').html(topFiles.map(f => `<span>${f}</span>`).join(''));
+      $('#bottomCoords').html(topFiles.map(f => `<span>${f}</span>`).join(''));
+      $('#leftCoords').html(leftRanks.map(r => `<span>${r}</span>`).join(''));
+      $('#rightCoords').html(leftRanks.map(r => `<span>${r}</span>`).join(''));
+    }
+
+    // Подсветка и подпись последнего хода на доске
+    function highlightLastMove() {
+      $('#board .square-55d63').removeClass('highlight-last-from highlight-last-to');
+      $('#board .last-move-badge').remove();
+
+      const history = game.history({ verbose: true });
+      if (history.length > 0) {
+        const last = history[history.length - 1];
+        $('#board .square-' + last.from).addClass('highlight-last-from');
+        const $toSquare = $('#board .square-' + last.to);
+        $toSquare.addClass('highlight-last-to');
+        
+        // Красивая текстовая метка хода (например, e5 или g7-e5) на целевой клетке
+        $toSquare.append(`<div class="last-move-badge">${last.from}-${last.to}</div>`);
+      }
+    }
+
     function removeHighlights () {
       $('#board .square-55d63').removeClass('highlight-selected highlight-hint highlight-capture');
+      highlightLastMove(); // Возвращаем подсветку последнего хода при снятии выделений
     }
 
     function showLegalMoves (square) {
@@ -657,8 +761,8 @@
 
       if (move === null) return false;
 
-      removeHighlights();
       board.position(game.fen());
+      highlightLastMove();
       updateStatus();
 
       if (!vsBot) {
@@ -680,10 +784,11 @@
           stockfish.postMessage('go depth 6');
         } else {
           const moves = game.moves({ verbose: true });
-        if (moves.length > 0) {
+          if (moves.length > 0) {
             const randomMove = moves[Math.floor(Math.random() * moves.length)];
             game.move(randomMove);
             board.position(game.fen());
+            highlightLastMove();
             updateStatus();
           }
         }
@@ -741,7 +846,7 @@
       if (vsBot) return;
       game.load(initialFen);
       board.position(initialFen);
-      removeHighlights();
+      highlightLastMove();
       selectedSquare = null;
       document.getElementById('moveActions').style.display = 'none';
       document.getElementById('boardOverlay').style.display = 'none';
@@ -761,21 +866,18 @@
       } else if (game.in_checkmate()) {
         status = `${t.checkmate}${game.turn() === 'w' ? t.black : t.white}.`;
         
-        // Определяем кто выиграл: текущий ход (game.turn()) проиграл, значит победил противоположный цвет
         const winnerColor = game.turn() === 'w' ? 'b' : 'w';
-        const boardOrientation = board.orientation(); // 'white' или 'black'
+        const boardOrientation = board.orientation();
         
         const overlay = document.getElementById('boardOverlay');
         const overlayTitle = document.getElementById('overlayTitle');
         const overlaySub = document.getElementById('overlaySub');
 
         if (winnerColor === boardOrientation[0]) {
-          // Победил игрок, чья сторона развернута на экране
           overlay.className = 'board-overlay victory';
           overlayTitle.innerText = t.victoryTitle;
           overlaySub.innerText = t.checkmateSub;
         } else {
-          // Победил соперник (поражение)
           overlay.className = 'board-overlay defeat';
           overlayTitle.innerText = t.defeatTitle;
           overlaySub.innerText = t.checkmateSub;
@@ -795,10 +897,12 @@
     }
 
     const currentTurn = game.turn();
+    const boardOrientation = currentTurn === 'w' ? 'white' : 'black';
+
     const config = {
       draggable: !isDrawOffer,
       position: game.fen(),
-      orientation: currentTurn === 'w' ? 'white' : 'black',
+      orientation: boardOrientation,
       onDragStart: onDragStart,
       onDrop: onDrop,
       onSnapEnd: onSnapEnd,
@@ -807,6 +911,10 @@
 
     board = Chessboard('board', config);
     board.position(game.fen(), false);
+
+    // Инициализируем рамки и подсветку последнего хода
+    updateCoordinates(boardOrientation);
+    highlightLastMove();
 
     $('#board').on('click', '*', function (e) {
       const $square = $(this).closest('.square-55d63');
