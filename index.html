@@ -119,15 +119,12 @@
       width: 100%;
       max-width: 360px;
       margin: 0 auto;
-      padding: 16px; /* Оставляем внешнее пространство для координат */
-      background: #262630;
-      border-radius: 12px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
     }
 
     #board {
       width: 100%;
-      border-radius: 4px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+      border-radius: 8px;
       overflow: visible !important;
       position: relative;
     }
@@ -170,35 +167,9 @@
       to { opacity: 1; transform: scale(1); }
     }
 
-    /* Отключаем старую встроенную нотацию */
-    .notation-32298 { display: none !important; }
-
-    /* Внешние координаты вокруг доски */
-    .external-coords {
-      position: absolute;
-      font-size: 11px;
-      font-weight: bold;
-      user-select: none;
-      display: flex;
-      pointer-events: none;
-    }
-    .coords-top, .coords-bottom {
-      left: 16px;
-      right: 16px;
-      justify-content: space-around;
-    }
-    .coords-top { top: 4px; }
-    .coords-bottom { bottom: 4px; }
-
-    .coords-left, .coords-right {
-      top: 16px;
-      bottom: 16px;
-      flex-direction: column;
-      justify-content: space-around;
-      align-items: center;
-    }
-    .coords-left { left: 4px; }
-    .coords-right { right: 4px; }
+    .notation-32298 { color: #a0a0ab !important; font-weight: bold; font-size: 11px; }
+    .alpha-d2270 { bottom: -18px !important; right: 4px !important; }
+    .numeric-fc462 { left: -16px !important; top: 4px !important; }
 
     /* Стили подсветки последнего хода на доске */
     .highlight-last-from { background-color: rgba(255, 152, 0, 0.35) !important; }
@@ -297,21 +268,14 @@
 
   <div id="status">...</div>
   
-  <!-- Панель последнего хода -->
+  <!-- Панель последнего хода (теперь всегда на виду) -->
   <div class="last-move-panel" id="lastMovePanel">
     <span id="lastMoveLabel">Последний ход:</span>
     <button class="last-move-btn" id="lastMoveBtn" onclick="toggleLastMoveHighlight()">—</button>
   </div>
 
   <div class="board-container">
-    <!-- Внешние ряды координат (динамически меняются под ориентацию доски) -->
-    <div class="external-coords coords-top" id="topCoords" style="color: #b58863;"></div>
-    <div class="external-coords coords-bottom" id="bottomCoords" style="color: #ffffff;"></div>
-    <div class="external-coords coords-left" id="leftCoords" style="color: #ffffff;"></div>
-    <div class="external-coords coords-right" id="rightCoords" style="color: #b58863;"></div>
-
     <div id="board"></div>
-
     <div id="boardOverlay" class="board-overlay defeat" style="display: none;">
       <h2 id="overlayTitle">💀 Поражение!</h2>
       <p id="overlaySub">Шах и мат</p>
@@ -607,23 +571,6 @@
     }
     initialFen = game.fen();
 
-    // Функция отрисовки внешних координат в зависимости от ориентации доски
-    function updateCoordinates(orientation) {
-      const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
-      const ranks = ['8', '7', '6', '5', '4', '3', '2', '1'];
-
-      const bottomFiles = orientation === 'white' ? files : [...files].reverse();
-      const topFiles = [...bottomFiles].reverse();
-      
-      const leftRanks = orientation === 'white' ? ranks : [...ranks].reverse();
-      const rightRanks = [...leftRanks].reverse();
-
-      $('#bottomCoords').html(bottomFiles.map(f => `<span>${f}</span>`).join(''));
-      $('#topCoords').html(topFiles.map(f => `<span>${f}</span>`).join(''));
-      $('#leftCoords').html(leftRanks.map(r => `<span>${r}</span>`).join(''));
-      $('#rightCoords').html(rightRanks.map(r => `<span>${r}</span>`).join(''));
-    }
-
     // Функция обновления панели последнего хода
     function updateLastMovePanel() {
       const t = translations[currentLang];
@@ -650,6 +597,7 @@
       }
     }
 
+    // Переключение подсветки по клику на кнопку
     function toggleLastMoveHighlight() {
       const history = game.history({ verbose: true });
       if (history.length === 0) return;
@@ -835,12 +783,10 @@
     }
 
     const currentTurn = game.turn();
-    const boardOrientation = currentTurn === 'w' ? 'white' : 'black';
-
     const config = {
       draggable: !isDrawOffer,
       position: game.fen(),
-      orientation: boardOrientation,
+      orientation: currentTurn === 'w' ? 'white' : 'black',
       onDragStart: onDragStart,
       onDrop: onDrop,
       onSnapEnd: onSnapEnd,
@@ -850,8 +796,7 @@
     board = Chessboard('board', config);
     board.position(game.fen(), false);
 
-    // Устанавливаем координаты под ориентацию доски и активируем панель
-    updateCoordinates(boardOrientation);
+    // Инициализируем панель при запуске
     updateLastMovePanel();
 
     $('#board').on('click', '*', function (e) {
