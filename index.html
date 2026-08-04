@@ -79,7 +79,7 @@
 
     /* Блок панели последнего хода */
     .last-move-panel {
-      display: none;
+      display: flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
@@ -268,10 +268,10 @@
 
   <div id="status">...</div>
   
-  <!-- Панель последнего хода -->
+  <!-- Панель последнего хода (теперь всегда на виду) -->
   <div class="last-move-panel" id="lastMovePanel">
     <span id="lastMoveLabel">Последний ход:</span>
-    <button class="last-move-btn" id="lastMoveBtn" onclick="toggleLastMoveHighlight()">-</button>
+    <button class="last-move-btn" id="lastMoveBtn" onclick="toggleLastMoveHighlight()">—</button>
   </div>
 
   <div class="board-container">
@@ -327,6 +327,7 @@
         bot: "🤖 С ботом",
         botThinking: "🤖 Бот думает...",
         lastMoveLabel: "Последний ход:",
+        noMoves: "—",
         rulesTitle: "📖 Руководство пользователя",
         white: "Белые",
         black: "Чёрные",
@@ -353,7 +354,7 @@
           <h4>⚡ Как управлять доской</h4>
           <ul>
             <li><b>Интерактивные подсветки:</b> Нажмите на любую фигуру, чтобы увидеть доступные ходы. Доступные клетки подсвечиваются <b>зелёным контуром</b>, а атака вражеской фигуры — <b>красным и символом ⚔️</b>.</li>
-            <li><b>Последний ход:</b> Нажмите на кнопку с ходом над доской, чтобы подсветить предыдущую рокировку/ход прямо на поле.</li>
+            <li><b>Последний ход:</b> Нажмите на кнопку с ходом над доской, чтобы подсветить предыдущий ход прямо на поле.</li>
             <li><b>Два способа хода:</b> Вы можете ходить перетаскивая фигуры (Drag & Drop) или делать ход в два клика (выбор фигуры ➔ выбор клетки).</li>
             <li><b>Корректировка:</b> Сделали неточный ход? Нажмите <b>«↩️ Переходить»</b>, чтобы отменить действие до отправки сообщения.</li>
           </ul>
@@ -369,9 +370,6 @@
             <li><b>Шах и Мат:</b> Приложение автоматически отслеживает шахи, маты и ничейные ситуации. Нажмите <b>«🤝 Ничья?»</b> для мирного соглашения.</li>
           </ul>
 
-          <h4>🌐 Параллельные игры</h4>
-          <p>Благодаря тому, что вы бросаете вызов в отдельном личном чате, вы можете играть с любым количеством игроков! Просто начните новую партию, написав боту, или прямо из любой текущей партии! Делайте первый ход, выбирайте нового игрока и ждите подтверждения в вашей с ним переписке. А что же текущая партия? Просто откройте её заново в вашей переписке по последней ссылке, и вы вернётесь туда, где закончили.</p>
-
           <p style="text-align: center; margin-top: 15px; font-weight: bold; color: #2ea6ff;">Приятной игры!</p>
           <p style="text-align: center; font-size: 0.75rem; color: #70707a;">© 2026 Allegro Chess. All rights reserved.</p>
         `
@@ -386,6 +384,7 @@
         bot: "🤖 З ботом",
         botThinking: "🤖 Бот думає...",
         lastMoveLabel: "Останній хід:",
+        noMoves: "—",
         rulesTitle: "📖 Інструкція користувача",
         white: "Білі",
         black: "Чорні",
@@ -404,22 +403,7 @@
         checkText: "! (Шах ⚡) Твоя черга:",
         checkmateText: " (МАТ 🏆) Гра завершена!",
         drawOfferText: "🤝 Пропоную нічию! Приймаєш?",
-        rulesHtml: `
-          <h4>🏁 Початок партії</h4>
-          <p>Ви вже тут, а отже, готові зіграти партію в Allegro Chess, вітаємо!</p>
-          <p>Сторону ви не обираєте — за замовчуванням першим ходить ініціатор партії (Білі).</p>
-
-          <h4>⚡ Як керувати дошкою</h4>
-          <ul>
-            <li><b>Інтерактивне підсвічування:</b> Натисніть на будь-яку фігуру, щоб побачити можливі ходи.</li>
-            <li><b>Останній хід:</b> Натисніть на кнопку ходу над дошкою, щоб підсвітити попередню дію.</li>
-            <li><b>Два способи ходу:</b> Ви можете перетягувати фігури (Drag & Drop) або робити хід у два кліки.</li>
-            <li><b>Коригування:</b> Зробили помилковий хід? Натисніть <b>«↩️ Переходити»</b>.</li>
-          </ul>
-
-          <p style="text-align: center; margin-top: 15px; font-weight: bold; color: #2ea6ff;">Приємної гри!</p>
-          <p style="text-align: center; font-size: 0.75rem; color: #70707a;">© 2026 Allegro Chess. All rights reserved.</p>
-        `
+        rulesHtml: `<p style="text-align: center;">Allegro Chess</p>`
       },
       en: {
         send: "📤 Send Move",
@@ -431,6 +415,7 @@
         bot: "🤖 vs Bot",
         botThinking: "🤖 Bot is thinking...",
         lastMoveLabel: "Last move:",
+        noMoves: "—",
         rulesTitle: "📖 User Guide",
         white: "White",
         black: "Black",
@@ -449,21 +434,7 @@
         checkText: "! (Check ⚡) Your turn:",
         checkmateText: " (CHECKMATE 🏆) Game over!",
         drawOfferText: "🤝 Offering a draw! Accept?",
-        rulesHtml: `
-          <h4>🏁 Game Start</h4>
-          <p>Ready to play Allegro Chess. Welcome!</p>
-          <p>The game initiator always moves first as White.</p>
-
-          <h4>⚡ Board Controls</h4>
-          <ul>
-            <li><b>Smart Highlights:</b> Tap any piece to see valid moves.</li>
-            <li><b>Last Move:</b> Tap the move button above the board to highlight the previous action.</li>
-            <li><b>Move Correction:</b> Tap <b>«↩️ Undo Move»</b> to reset before sharing.</li>
-          </ul>
-
-          <p style="text-align: center; margin-top: 15px; font-weight: bold; color: #2ea6ff;">Enjoy the game!</p>
-          <p style="text-align: center; font-size: 0.75rem; color: #70707a;">© 2026 Allegro Chess. All rights reserved.</p>
-        `
+        rulesHtml: `<p style="text-align: center;">Allegro Chess</p>`
       },
       es: {
         send: "📤 Enviar jugada",
@@ -475,6 +446,7 @@
         bot: "🤖 vs Bot",
         botThinking: "🤖 El bot está pensando...",
         lastMoveLabel: "Última jugada:",
+        noMoves: "—",
         rulesTitle: "📖 Guía de usuario",
         white: "Blancas",
         black: "Negras",
@@ -493,13 +465,7 @@
         checkText: "! (¡Jaque ⚡!) Tu turno:",
         checkmateText: " (¡MATE 🏆!) ¡Fin de la partida!",
         drawOfferText: "🤝 ¡Propongo tablas! ¿Aceptas?",
-        rulesHtml: `
-          <h4>🏁 Inicio de partida</h4>
-          <p>¡Listo para jugar a Allegro Chess!</p>
-
-          <p style="text-align: center; margin-top: 15px; font-weight: bold; color: #2ea6ff;">¡Disfruta del juego!</p>
-          <p style="text-align: center; font-size: 0.75rem; color: #70707a;">© 2026 Allegro Chess. All rights reserved.</p>
-        `
+        rulesHtml: `<p style="text-align: center;">Allegro Chess</p>`
       },
       it: {
         send: "📤 Invia Mossa",
@@ -511,6 +477,7 @@
         bot: "🤖 vs Bot",
         botThinking: "🤖 Il bot sta pensando...",
         lastMoveLabel: "Ultima mossa:",
+        noMoves: "—",
         rulesTitle: "📖 Guida Utente",
         white: "Bianchi",
         black: "Neri",
@@ -529,13 +496,7 @@
         checkText: "! (Scacco ⚡) Il tuo turno:",
         checkmateText: " (SCACCO MATTO 🏆) Partita finita!",
         drawOfferText: "🤝 Propongo la patta! Accetti?",
-        rulesHtml: `
-          <h4>🏁 Inizio Partita</h4>
-          <p>Pronto per una partita a Allegro Chess!</p>
-
-          <p style="text-align: center; margin-top: 15px; font-weight: bold; color: #2ea6ff;">Buona partita!</p>
-          <p style="text-align: center; font-size: 0.75rem; color: #70707a;">© 2026 Allegro Chess. All rights reserved.</p>
-        `
+        rulesHtml: `<p style="text-align: center;">Allegro Chess</p>`
       }
     };
 
@@ -571,7 +532,7 @@
     let selectedSquare = null;
     let vsBot = false;
     let stockfish = null;
-    let isLastMoveHighlighted = false; // Состояние подсветки последнего хода
+    let isLastMoveHighlighted = false;
 
     try {
       stockfish = typeof Stockfish === 'function' ? Stockfish() : new Worker('https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.2/stockfish.js');
@@ -587,7 +548,6 @@
             game.move({ from: from, to: to, promotion: promotion });
             board.position(game.fen());
             
-            // Если бот сделал ход, автоматически обновляем панель
             isLastMoveHighlighted = false;
             updateLastMovePanel();
             updateStatus();
@@ -613,16 +573,15 @@
 
     // Функция обновления панели последнего хода
     function updateLastMovePanel() {
+      const t = translations[currentLang];
       const history = game.history({ verbose: true });
-      const $panel = $('#lastMovePanel');
       const $btn = $('#lastMoveBtn');
 
       if (history.length > 0) {
-        $panel.css('display', 'flex');
         const last = history[history.length - 1];
         $btn.text(`${last.from}-${last.to}`);
+        $btn.prop('disabled', false);
 
-        // Применяем или убираем подсветку на доске
         $('#board .square-55d63').removeClass('highlight-last-from highlight-last-to');
         if (isLastMoveHighlighted) {
           $('#board .square-' + last.from).addClass('highlight-last-from');
@@ -632,19 +591,22 @@
           $btn.removeClass('active-highlight');
         }
       } else {
-        $panel.hide();
+        $btn.text(t.noMoves);
+        $btn.prop('disabled', true);
+        $btn.removeClass('active-highlight');
       }
     }
 
     // Переключение подсветки по клику на кнопку
     function toggleLastMoveHighlight() {
+      const history = game.history({ verbose: true });
+      if (history.length === 0) return;
       isLastMoveHighlighted = !isLastMoveHighlighted;
       updateLastMovePanel();
     }
 
     function removeHighlights () {
       $('#board .square-55d63').removeClass('highlight-selected highlight-hint highlight-capture');
-      // Возвращаем подсветку последнего хода, если она была включена пользователем
       updateLastMovePanel();
     }
 
@@ -682,7 +644,6 @@
       removeHighlights();
       board.position(game.fen());
       
-      // Сбрасываем подсветку последнего хода при новом действии игрока
       isLastMoveHighlighted = false;
       updateLastMovePanel();
       updateStatus();
@@ -835,7 +796,7 @@
     board = Chessboard('board', config);
     board.position(game.fen(), false);
 
-    // Инициализируем панель последнего хода при загрузке
+    // Инициализируем панель при запуске
     updateLastMovePanel();
 
     $('#board').on('click', '*', function (e) {
