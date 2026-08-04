@@ -121,15 +121,16 @@
       margin: 0 auto;
     }
 
-    /* Профессиональная рамка с координатами со всех сторон */
+    /* Возвращаем исходный размер доски на всю ширину контейнера, добавляя внешние отступы для координат */
     .chess-frame {
       display: grid;
-      grid-template-columns: 20px 1fr 20px;
-      grid-template-rows: 20px 1fr 20px;
+      grid-template-columns: 18px 1fr 18px;
+      grid-template-rows: 18px 1fr 18px;
       background: #262630;
       padding: 4px;
       border-radius: 10px;
       box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+      width: 100%;
     }
 
     .coord-col {
@@ -153,13 +154,13 @@
     #board {
       grid-column: 2;
       grid-row: 2;
-      width: 100%;
+      width: 100% !important;
       border-radius: 4px;
       overflow: visible !important;
       position: relative;
     }
 
-    /* Отключаем встроенную стандартную кривую нотацию chessboard.js */
+    /* Отключаем встроенную стандартную нотацию chessboard.js */
     .notation-32298 { display: none !important; }
 
     .board-overlay {
@@ -444,7 +445,7 @@
         defeatTitle: "💀 Поразка!",
         victoryTitle: "🏆 Перемога!",
         checkmateSub: "Шах і мат",
-        drawGame: "🤝 Гра завершилася внічию!",
+        drawGame: "🤝 Гра завершилася вничию!",
         drawOffer: "🤝 Суперник пропонує ничию!",
         drawAccepted: "🤝 Ви прийняли нічию!",
         myMoveText: "♟️ Мій хід",
@@ -620,7 +621,6 @@
     }
     initialFen = game.fen();
 
-    // Функция отрисовки координат со всех сторон (белые снизу/слева, цвет тёмных клеток сверху/справа)
     function updateCoordinates(orientation) {
       const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
       const ranks = ['8', '7', '6', '5', '4', '3', '2', '1'];
@@ -637,7 +637,6 @@
       $('#rightCoords').html(rightRanks.map(r => `<span>${r}</span>`).join(''));
     }
 
-    // Функция обновления панели последнего хода
     function updateLastMovePanel() {
       const t = translations[currentLang];
       const history = game.history({ verbose: true });
@@ -663,7 +662,6 @@
       }
     }
 
-    // Переключение подсветки по клику на кнопку
     function toggleLastMoveHighlight() {
       const history = game.history({ verbose: true });
       if (history.length === 0) return;
@@ -864,7 +862,6 @@
     board = Chessboard('board', config);
     board.position(game.fen(), false);
 
-    // Инициализируем координаты и панель
     updateCoordinates(boardOrientation);
     updateLastMovePanel();
 
