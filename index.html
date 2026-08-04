@@ -572,7 +572,6 @@
     }
     initialFen = game.fen();
 
-    // Функция обновления панели последнего хода
     function updateLastMovePanel() {
       const t = translations[currentLang];
       const history = game.history({ verbose: true });
@@ -598,7 +597,6 @@
       }
     }
 
-    // Переключение подсветки по клику на кнопку
     function toggleLastMoveHighlight() {
       const history = game.history({ verbose: true });
       if (history.length === 0) return;
@@ -797,7 +795,6 @@
     board = Chessboard('board', config);
     board.position(game.fen(), false);
 
-    // Инициализируем панель при запуске
     updateLastMovePanel();
 
     $('#board').on('click', '*', function (e) {
