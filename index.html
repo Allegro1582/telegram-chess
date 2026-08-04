@@ -71,10 +71,47 @@
 
     #status {
       font-size: 1.1rem;
-      margin-bottom: 12px;
+      margin-bottom: 8px;
       font-weight: 600;
       text-align: center;
-      min-height: 2.4em;
+      min-height: 2.2em;
+    }
+
+    /* Блок панели последнего хода */
+    .last-move-panel {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      font-size: 0.9rem;
+      color: #a0a0ab;
+      background: #262630;
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid #33333e;
+    }
+
+    .last-move-btn {
+      background: #141418;
+      border: 1px solid #404050;
+      color: #ff9800;
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .last-move-btn:hover {
+      border-color: #ff9800;
+      background: #202028;
+    }
+    .last-move-btn.active-highlight {
+      background: #ff9800;
+      color: #1e1e24;
+      border-color: #ff9800;
+      box-shadow: 0 0 10px rgba(255, 152, 0, 0.4);
     }
     
     .board-container {
@@ -133,6 +170,10 @@
     .notation-32298 { color: #a0a0ab !important; font-weight: bold; font-size: 11px; }
     .alpha-d2270 { bottom: -18px !important; right: 4px !important; }
     .numeric-fc462 { left: -16px !important; top: 4px !important; }
+
+    /* Стили подсветки последнего хода на доске */
+    .highlight-last-from { background-color: rgba(255, 152, 0, 0.35) !important; }
+    .highlight-last-to { background-color: rgba(255, 152, 0, 0.6) !important; }
 
     .highlight-selected { background-color: rgba(255, 235, 59, 0.5) !important; }
     .highlight-hint { box-shadow: inset 0 0 0 3px #4caf50 !important; cursor: pointer !important; }
@@ -227,6 +268,12 @@
 
   <div id="status">...</div>
   
+  <!-- Панель последнего хода -->
+  <div class="last-move-panel" id="lastMovePanel">
+    <span id="lastMoveLabel">Последний ход:</span>
+    <button class="last-move-btn" id="lastMoveBtn" onclick="toggleLastMoveHighlight()">-</button>
+  </div>
+
   <div class="board-container">
     <div id="board"></div>
     <div id="boardOverlay" class="board-overlay defeat" style="display: none;">
@@ -279,6 +326,7 @@
         reset: "🔄 Сброс",
         bot: "🤖 С ботом",
         botThinking: "🤖 Бот думает...",
+        lastMoveLabel: "Последний ход:",
         rulesTitle: "📖 Руководство пользователя",
         white: "Белые",
         black: "Чёрные",
@@ -305,6 +353,7 @@
           <h4>⚡ Как управлять доской</h4>
           <ul>
             <li><b>Интерактивные подсветки:</b> Нажмите на любую фигуру, чтобы увидеть доступные ходы. Доступные клетки подсвечиваются <b>зелёным контуром</b>, а атака вражеской фигуры — <b>красным и символом ⚔️</b>.</li>
+            <li><b>Последний ход:</b> Нажмите на кнопку с ходом над доской, чтобы подсветить предыдущую рокировку/ход прямо на поле.</li>
             <li><b>Два способа хода:</b> Вы можете ходить перетаскивая фигуры (Drag & Drop) или делать ход в два клика (выбор фигуры ➔ выбор клетки).</li>
             <li><b>Корректировка:</b> Сделали неточный ход? Нажмите <b>«↩️ Переходить»</b>, чтобы отменить действие до отправки сообщения.</li>
           </ul>
@@ -336,6 +385,7 @@
         reset: "🔄 Скидання",
         bot: "🤖 З ботом",
         botThinking: "🤖 Бот думає...",
+        lastMoveLabel: "Останній хід:",
         rulesTitle: "📖 Інструкція користувача",
         white: "Білі",
         black: "Чорні",
@@ -347,7 +397,7 @@
         victoryTitle: "🏆 Перемога!",
         checkmateSub: "Шах і мат",
         drawGame: "🤝 Гра завершилася внічию!",
-        drawOffer: "🤝 Суперник пропонує нічию!",
+        drawOffer: "🤝 Суперник пропонує ничию!",
         drawAccepted: "🤝 Ви прийняли нічию!",
         myMoveText: "♟️ Мій хід",
         yourTurnText: "Твоя черга:",
@@ -361,24 +411,11 @@
 
           <h4>⚡ Як керувати дошкою</h4>
           <ul>
-            <li><b>Інтерактивне підсвічування:</b> Натисніть на будь-яку фігуру, щоб побачити можливі ходи. Доступні клітинки виділяються <b>зеленим контуром</b>, а атака фігури суперника — <b>червоним та символом ⚔️</b>.</li>
-            <li><b>Два способи ходу:</b> Ви можете перетягувати фігури (Drag & Drop) або робити хід у два кліки (вибір фігури ➔ вибір клітинки).</li>
-            <li><b>Коригування:</b> Зробили помилковий хід? Натисніть <b>«↩️ Переходити»</b>, щоб скасувати дію до надсилання повідомлення.</li>
+            <li><b>Інтерактивне підсвічування:</b> Натисніть на будь-яку фігуру, щоб побачити можливі ходи.</li>
+            <li><b>Останній хід:</b> Натисніть на кнопку ходу над дошкою, щоб підсвітити попередню дію.</li>
+            <li><b>Два способи ходу:</b> Ви можете перетягувати фігури (Drag & Drop) або робити хід у два кліки.</li>
+            <li><b>Коригування:</b> Зробили помилковий хід? Натисніть <b>«↩️ Переходити»</b>.</li>
           </ul>
-
-          <h4>⚔️ Як грати з другом чи ботом</h4>
-          <ul>
-            <li><b>З другом:</b> Перемістіть фігуру та натисніть <b>«📤 Надіслати хід»</b>. Завжди відкривайте <b>найновіше посилання</b> у чаті.</li>
-            <li><b>З ботом:</b> Натисніть кнопку <b>«🤖 З ботом»</b> для тренувальної партії проти штучного інтелекту.</li>
-          </ul>
-
-          <h4>🏆 Завершення партії</h4>
-          <ul>
-            <li><b>Шах і Мат:</b> Застосунок автоматично відстежує шахи, мати та нічийні ситуації. Натисніть <b>«🤝 Нічия?»</b> для мирного узгодження.</li>
-          </ul>
-
-          <h4>🌐 Паралельні ігри</h4>
-          <p>Завдяки тому, що ви кидаєте виклик в окремому чаті, ви можете грати з будь-якою кількістю гравців! Просто почніть нову партію через бота або прямо з поточної гри. Зробіть перший хід, виберіть нового гравця та чекайте на відповідь. А що ж поточна партія? Просто відкрийте її знову у вашому чаті за останнім посиланням, і ви повернетеся туди, де зупинилися.</p>
 
           <p style="text-align: center; margin-top: 15px; font-weight: bold; color: #2ea6ff;">Приємної гри!</p>
           <p style="text-align: center; font-size: 0.75rem; color: #70707a;">© 2026 Allegro Chess. All rights reserved.</p>
@@ -393,6 +430,7 @@
         reset: "🔄 Reset",
         bot: "🤖 vs Bot",
         botThinking: "🤖 Bot is thinking...",
+        lastMoveLabel: "Last move:",
         rulesTitle: "📖 User Guide",
         white: "White",
         black: "Black",
@@ -413,29 +451,15 @@
         drawOfferText: "🤝 Offering a draw! Accept?",
         rulesHtml: `
           <h4>🏁 Game Start</h4>
-          <p>You're here, which means you're ready to play a game of Allegro Chess. Welcome!</p>
-          <p>You don't pick sides — the game initiator always moves first as White.</p>
+          <p>Ready to play Allegro Chess. Welcome!</p>
+          <p>The game initiator always moves first as White.</p>
 
           <h4>⚡ Board Controls</h4>
           <ul>
-            <li><b>Smart Highlights:</b> Tap any piece to see valid moves. Available squares are outlined in <b>green</b>, enemy targets in <b>red with ⚔️</b>.</li>
-            <li><b>Flexible Input:</b> Drag & drop pieces across the board or use standard tap-to-select controls.</li>
-            <li><b>Move Correction:</b> Made a mistake? Tap <b>«↩️ Undo Move»</b> to reset before sharing.</li>
+            <li><b>Smart Highlights:</b> Tap any piece to see valid moves.</li>
+            <li><b>Last Move:</b> Tap the move button above the board to highlight the previous action.</li>
+            <li><b>Move Correction:</b> Tap <b>«↩️ Undo Move»</b> to reset before sharing.</li>
           </ul>
-
-          <h4>⚔️ Playing with Friends or Bot</h4>
-          <ul>
-            <li><b>With Friends:</b> Move a piece and press <b>«📤 Send Move»</b>. Always open the <b>latest link</b> in your chat.</li>
-            <li><b>With Bot:</b> Tap <b>«🤖 vs Bot»</b> to practice locally against the AI.</li>
-          </ul>
-
-          <h4>🏆 Game Resolution</h4>
-          <ul>
-            <li><b>Checks & Mates:</b> Checks, checkmates, and draws are tracked automatically. Use <b>«🤝 Offer Draw»</b> to propose a tie.</li>
-          </ul>
-
-          <h4>🌐 Parallel Games</h4>
-          <p>Since challenges are issued in direct chats, you can play with any number of opponents simultaneously! Simply start a new match via the bot or right from an active game. Make your move, pick a new player, and wait for their reply. What about your current match? Just re-open the latest link in that chat to pick up right where you left off.</p>
 
           <p style="text-align: center; margin-top: 15px; font-weight: bold; color: #2ea6ff;">Enjoy the game!</p>
           <p style="text-align: center; font-size: 0.75rem; color: #70707a;">© 2026 Allegro Chess. All rights reserved.</p>
@@ -450,6 +474,7 @@
         reset: "🔄 Reiniciar",
         bot: "🤖 vs Bot",
         botThinking: "🤖 El bot está pensando...",
+        lastMoveLabel: "Última jugada:",
         rulesTitle: "📖 Guía de usuario",
         white: "Blancas",
         black: "Negras",
@@ -470,29 +495,7 @@
         drawOfferText: "🤝 ¡Propongo tablas! ¿Aceptas?",
         rulesHtml: `
           <h4>🏁 Inicio de partida</h4>
-          <p>¡Ya estás aquí! Estás listo para jugar una partida de Allegro Chess. ¡Bienvenido!</p>
-          <p>No eliges bando: el iniciador de la partida juega siempre con Blancas.</p>
-
-          <h4>⚡ Control del tablero</h4>
-          <ul>
-            <li><b>Resaltado inteligente:</b> Toca cualquier pieza para ver los movimientos válidos. Las casillas libres se destacan en <b>verde</b> y las capturas en <b>rojo con ⚔️</b>.</li>
-            <li><b>Modos de juego:</b> Arrastra piezas (Drag & Drop) o selecciona con dos toques simples.</li>
-            <li><b>Corrección:</b> ¿Cometiste un error? Pulsa <b>«↩️ Deshacer»</b> para rectificar antes de enviar.</li>
-          </ul>
-
-          <h4>⚔️ Jugar con amigos o contra el Bot</h4>
-          <ul>
-            <li><b>Con amigos:</b> Mueve una pieza y pulsa <b>«📤 Enviar jugada»</b>. Abre siempre el <b>último enlace recibido</b>.</li>
-            <li><b>Contra el Bot:</b> Pulsa <b>«🤖 vs Bot»</b> para practicar localmente contra la IA.</li>
-          </ul>
-
-          <h4>🏆 Finalización</h4>
-          <ul>
-            <li><b>Control de estados:</b> Los jaques, mates y tablas se detectan automáticamente. Usa <b>«🤝 ¿Tablas?»</b> para proponer empate.</li>
-          </ul>
-
-          <h4>🌐 Partidas paralelas</h4>
-          <p>¡Puedes jugar con cualquier número de personas al mismo tiempo! Inicia una nueva partida con el bot o desde el juego actual. Haz tu jugada, elige un nuevo rival y espera su turno. ¿Y tu partida anterior? Solo abre el último enlace en ese chat para volver exactamente donde lo dejaste.</p>
+          <p>¡Listo para jugar a Allegro Chess!</p>
 
           <p style="text-align: center; margin-top: 15px; font-weight: bold; color: #2ea6ff;">¡Disfruta del juego!</p>
           <p style="text-align: center; font-size: 0.75rem; color: #70707a;">© 2026 Allegro Chess. All rights reserved.</p>
@@ -507,6 +510,7 @@
         reset: "🔄 Ricomincia",
         bot: "🤖 vs Bot",
         botThinking: "🤖 Il bot sta pensando...",
+        lastMoveLabel: "Ultima mossa:",
         rulesTitle: "📖 Guida Utente",
         white: "Bianchi",
         black: "Neri",
@@ -527,29 +531,7 @@
         drawOfferText: "🤝 Propongo la patta! Accetti?",
         rulesHtml: `
           <h4>🏁 Inizio Partita</h4>
-          <p>Sei qui, il che significa che sei pronto per una partita a Allegro Chess. Benvenuto!</p>
-          <p>Non scegli il colore: l'iniziatore della partita gioca sempre con i Bianchi.</p>
-
-          <h4>⚡ Controllo Scacchiera</h4>
-          <ul>
-            <li><b>Evidenziazione Intelligente:</b> Tocca un pezzo per vedere le mosse legali. Le caselle libere sono evidenziate in <b>verde</b>, le catture in <b>rosso con ⚔️</b>.</li>
-            <li><b>Interazione:</b> Trascina i pezzi o usa il doppio tocco per muovere.</li>
-            <li><b>Correzione:</b> Errore di valutazione? Premi <b>«↩️ Annulla»</b> prima di inviare.</li>
-          </ul>
-
-          <h4>⚔️ Giocare con Amici o contro il Bot</h4>
-          <ul>
-            <li><b>Con amici:</b> Muovi e premi <b>«📤 Invia Mossa»</b>. Apri sempre <b>l'ultimo link ricevuto</b>.</li>
-            <li><b>Contro il Bot:</b> Premi <b>«🤖 vs Bot»</b> per allenarti contro l'intelligenza artificiale.</li>
-          </ul>
-
-          <h4>🏆 Conclusione</h4>
-          <ul>
-            <li><b>Rilevamento Automatico:</b> Scacchi, scacchi matti e patte sono gestiti dal sistema. Usa <b>«🤝 Patta?»</b> per proporre l'accordo.</li>
-          </ul>
-
-          <h4>🌐 Partite Parallele</h4>
-          <p>Puoi giocare con qualsiasi numero di giocatori contemporaneamente! Avvia una nuova partita tramite il bot o direttamente dal gioco in corso. Fai la tua mossa, scegli un nuovo avversario e attendi la risposta. E la tua partita precedente? Apri l'ultimo link in quella chat per riprendere da dove avevi lasciato.</p>
+          <p>Pronto per una partita a Allegro Chess!</p>
 
           <p style="text-align: center; margin-top: 15px; font-weight: bold; color: #2ea6ff;">Buona partita!</p>
           <p style="text-align: center; font-size: 0.75rem; color: #70707a;">© 2026 Allegro Chess. All rights reserved.</p>
@@ -575,9 +557,11 @@
       $('#drawBtn').text(t.draw);
       $('#resetBtn').text(t.reset);
       $('#botBtn').text(t.bot);
+      $('#lastMoveLabel').text(t.lastMoveLabel);
       $('#rulesHeader').text(t.rulesTitle);
       $('#rulesContent').html(t.rulesHtml);
 
+      updateLastMovePanel();
       updateStatus();
     }
 
@@ -587,6 +571,7 @@
     let selectedSquare = null;
     let vsBot = false;
     let stockfish = null;
+    let isLastMoveHighlighted = false; // Состояние подсветки последнего хода
 
     try {
       stockfish = typeof Stockfish === 'function' ? Stockfish() : new Worker('https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.2/stockfish.js');
@@ -601,6 +586,10 @@
             
             game.move({ from: from, to: to, promotion: promotion });
             board.position(game.fen());
+            
+            // Если бот сделал ход, автоматически обновляем панель
+            isLastMoveHighlighted = false;
+            updateLastMovePanel();
             updateStatus();
           }
         }
@@ -622,8 +611,41 @@
     }
     initialFen = game.fen();
 
+    // Функция обновления панели последнего хода
+    function updateLastMovePanel() {
+      const history = game.history({ verbose: true });
+      const $panel = $('#lastMovePanel');
+      const $btn = $('#lastMoveBtn');
+
+      if (history.length > 0) {
+        $panel.css('display', 'flex');
+        const last = history[history.length - 1];
+        $btn.text(`${last.from}-${last.to}`);
+
+        // Применяем или убираем подсветку на доске
+        $('#board .square-55d63').removeClass('highlight-last-from highlight-last-to');
+        if (isLastMoveHighlighted) {
+          $('#board .square-' + last.from).addClass('highlight-last-from');
+          $('#board .square-' + last.to).addClass('highlight-last-to');
+          $btn.addClass('active-highlight');
+        } else {
+          $btn.removeClass('active-highlight');
+        }
+      } else {
+        $panel.hide();
+      }
+    }
+
+    // Переключение подсветки по клику на кнопку
+    function toggleLastMoveHighlight() {
+      isLastMoveHighlighted = !isLastMoveHighlighted;
+      updateLastMovePanel();
+    }
+
     function removeHighlights () {
       $('#board .square-55d63').removeClass('highlight-selected highlight-hint highlight-capture');
+      // Возвращаем подсветку последнего хода, если она была включена пользователем
+      updateLastMovePanel();
     }
 
     function showLegalMoves (square) {
@@ -659,6 +681,10 @@
 
       removeHighlights();
       board.position(game.fen());
+      
+      // Сбрасываем подсветку последнего хода при новом действии игрока
+      isLastMoveHighlighted = false;
+      updateLastMovePanel();
       updateStatus();
 
       if (!vsBot) {
@@ -680,10 +706,12 @@
           stockfish.postMessage('go depth 6');
         } else {
           const moves = game.moves({ verbose: true });
-        if (moves.length > 0) {
+          if (moves.length > 0) {
             const randomMove = moves[Math.floor(Math.random() * moves.length)];
             game.move(randomMove);
             board.position(game.fen());
+            isLastMoveHighlighted = false;
+            updateLastMovePanel();
             updateStatus();
           }
         }
@@ -745,6 +773,8 @@
       selectedSquare = null;
       document.getElementById('moveActions').style.display = 'none';
       document.getElementById('boardOverlay').style.display = 'none';
+      isLastMoveHighlighted = false;
+      updateLastMovePanel();
       updateStatus();
     }
 
@@ -761,21 +791,18 @@
       } else if (game.in_checkmate()) {
         status = `${t.checkmate}${game.turn() === 'w' ? t.black : t.white}.`;
         
-        // Определяем кто выиграл: текущий ход (game.turn()) проиграл, значит победил противоположный цвет
         const winnerColor = game.turn() === 'w' ? 'b' : 'w';
-        const boardOrientation = board.orientation(); // 'white' или 'black'
+        const boardOrientation = board.orientation();
         
         const overlay = document.getElementById('boardOverlay');
         const overlayTitle = document.getElementById('overlayTitle');
         const overlaySub = document.getElementById('overlaySub');
 
         if (winnerColor === boardOrientation[0]) {
-          // Победил игрок, чья сторона развернута на экране
           overlay.className = 'board-overlay victory';
           overlayTitle.innerText = t.victoryTitle;
           overlaySub.innerText = t.checkmateSub;
         } else {
-          // Победил соперник (поражение)
           overlay.className = 'board-overlay defeat';
           overlayTitle.innerText = t.defeatTitle;
           overlaySub.innerText = t.checkmateSub;
@@ -807,6 +834,9 @@
 
     board = Chessboard('board', config);
     board.position(game.fen(), false);
+
+    // Инициализируем панель последнего хода при загрузке
+    updateLastMovePanel();
 
     $('#board').on('click', '*', function (e) {
       const $square = $(this).closest('.square-55d63');
