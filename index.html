@@ -121,13 +121,46 @@
       margin: 0 auto;
     }
 
-    #board {
-      width: 100%;
+    /* Профессиональная рамка с координатами со всех сторон */
+    .chess-frame {
+      display: grid;
+      grid-template-columns: 20px 1fr 20px;
+      grid-template-rows: 20px 1fr 20px;
+      background: #262630;
+      padding: 4px;
+      border-radius: 10px;
       box-shadow: 0 8px 24px rgba(0,0,0,0.6);
-      border-radius: 8px;
+    }
+
+    .coord-col {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      font-size: 0.75rem;
+      font-weight: bold;
+      user-select: none;
+    }
+    .coord-row {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      align-items: center;
+      font-size: 0.75rem;
+      font-weight: bold;
+      user-select: none;
+    }
+
+    #board {
+      grid-column: 2;
+      grid-row: 2;
+      width: 100%;
+      border-radius: 4px;
       overflow: visible !important;
       position: relative;
     }
+
+    /* Отключаем встроенную стандартную кривую нотацию chessboard.js */
+    .notation-32298 { display: none !important; }
 
     .board-overlay {
       position: absolute;
@@ -166,10 +199,6 @@
       from { opacity: 0; transform: scale(0.95); }
       to { opacity: 1; transform: scale(1); }
     }
-
-    .notation-32298 { color: #a0a0ab !important; font-weight: bold; font-size: 11px; }
-    .alpha-d2270 { bottom: -18px !important; right: 4px !important; }
-    .numeric-fc462 { left: -16px !important; top: 4px !important; }
 
     /* Стили подсветки последнего хода на доске */
     .highlight-last-from { background-color: rgba(255, 152, 0, 0.35) !important; }
@@ -268,14 +297,34 @@
 
   <div id="status">...</div>
   
-  <!-- Панель последнего хода (теперь всегда на виду) -->
+  <!-- Панель последнего хода -->
   <div class="last-move-panel" id="lastMovePanel">
     <span id="lastMoveLabel">Последний ход:</span>
     <button class="last-move-btn" id="lastMoveBtn" onclick="toggleLastMoveHighlight()">—</button>
   </div>
 
   <div class="board-container">
-    <div id="board"></div>
+    <div class="chess-frame">
+      <!-- Верхний ряд координат (цвета тёмных клеток) -->
+      <div></div>
+      <div class="coord-col" id="topCoords" style="color: #b58863;"></div>
+      <div></div>
+
+      <!-- Левый ряд координат (белые) -->
+      <div class="coord-row" id="leftCoords" style="color: #ffffff;"></div>
+      
+      <!-- Сама доска -->
+      <div id="board"></div>
+
+      <!-- Правый ряд координат (цвета тёмных клеток) -->
+      <div class="coord-row" id="rightCoords" style="color: #b58863;"></div>
+
+      <!-- Нижний ряд координат (белые) -->
+      <div></div>
+      <div class="coord-col" id="bottomCoords" style="color: #ffffff;"></div>
+      <div></div>
+    </div>
+
     <div id="boardOverlay" class="board-overlay defeat" style="display: none;">
       <h2 id="overlayTitle">💀 Поражение!</h2>
       <p id="overlaySub">Шах и мат</p>
@@ -571,6 +620,23 @@
     }
     initialFen = game.fen();
 
+    // Функция отрисовки координат со всех сторон (белые снизу/слева, цвет тёмных клеток сверху/справа)
+    function updateCoordinates(orientation) {
+      const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+      const ranks = ['8', '7', '6', '5', '4', '3', '2', '1'];
+
+      const bottomFiles = orientation === 'white' ? files : [...files].reverse();
+      const topFiles = [...bottomFiles].reverse();
+      
+      const leftRanks = orientation === 'white' ? ranks : [...ranks].reverse();
+      const rightRanks = [...leftRanks].reverse();
+
+      $('#bottomCoords').html(bottomFiles.map(f => `<span>${f}</span>`).join(''));
+      $('#topCoords').html(topFiles.map(f => `<span>${f}</span>`).join(''));
+      $('#leftCoords').html(leftRanks.map(r => `<span>${r}</span>`).join(''));
+      $('#rightCoords').html(rightRanks.map(r => `<span>${r}</span>`).join(''));
+    }
+
     // Функция обновления панели последнего хода
     function updateLastMovePanel() {
       const t = translations[currentLang];
@@ -783,10 +849,12 @@
     }
 
     const currentTurn = game.turn();
+    const boardOrientation = currentTurn === 'w' ? 'white' : 'black';
+
     const config = {
       draggable: !isDrawOffer,
       position: game.fen(),
-      orientation: currentTurn === 'w' ? 'white' : 'black',
+      orientation: boardOrientation,
       onDragStart: onDragStart,
       onDrop: onDrop,
       onSnapEnd: onSnapEnd,
@@ -796,7 +864,8 @@
     board = Chessboard('board', config);
     board.position(game.fen(), false);
 
-    // Инициализируем панель при запуске
+    // Инициализируем координаты и панель
+    updateCoordinates(boardOrientation);
     updateLastMovePanel();
 
     $('#board').on('click', '*', function (e) {
